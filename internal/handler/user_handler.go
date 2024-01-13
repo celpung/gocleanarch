@@ -18,7 +18,7 @@ func NewUserHandler(userUseCase usecase.UserUseCase) *UserHandler {
 	}
 }
 
-func (uh *UserHandler) CreateUser(c *gin.Context) {
+func (h *UserHandler) Create(c *gin.Context) {
 	var user entity.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -27,12 +27,25 @@ func (uh *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	if err := uh.UserUseCase.CreateUser(&user); err != nil {
+	if err := h.UserUseCase.CreateUser(&user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Register success",
+	})
+}
+
+func (h *UserHandler) Read(c *gin.Context) {
+	user, err := h.UserUseCase.Read()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": user,
 	})
 }
