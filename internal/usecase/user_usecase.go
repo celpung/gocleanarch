@@ -3,18 +3,18 @@ package usecase
 import (
 	"github.com/celpung/gocleanarch/infrastructure"
 	"github.com/celpung/gocleanarch/internal/entity"
-	userRepository "github.com/celpung/gocleanarch/internal/repository/user"
+	repository "github.com/celpung/gocleanarch/internal/repository/user"
 )
 
 type UserUseCase struct {
-	UserRepository userRepository.UserRepository
+	UserRepository repository.UserRepository
 	PasswordSrv    *infrastructure.PasswordService
 	Jwtsrv         *infrastructure.JwtService
 }
 
-func NewUserUseCase(userRepository userRepository.UserRepository, passwordSrv *infrastructure.PasswordService, jwtSrv *infrastructure.JwtService) *UserUseCase {
+func NewUserUseCase(repository repository.UserRepository, passwordSrv *infrastructure.PasswordService, jwtSrv *infrastructure.JwtService) *UserUseCase {
 	return &UserUseCase{
-		UserRepository: userRepository,
+		UserRepository: repository,
 		PasswordSrv:    passwordSrv,
 		Jwtsrv:         jwtSrv,
 	}
