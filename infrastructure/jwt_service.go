@@ -3,7 +3,7 @@ package infrastructure
 import (
 	"os"
 
-	"github.com/celpung/gocleanarch/internal/entity"
+	"github.com/celpung/gocleanarch/domain"
 	"github.com/dgrijalva/jwt-go"
 )
 
@@ -13,7 +13,7 @@ func NewJwtService() *JwtService {
 	return &JwtService{}
 }
 
-func (js *JwtService) JWTGenerator(user entity.User) (string, error) {
+func (js *JwtService) JWTGenerator(user domain.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email": user.Email,
 		"id":    user.ID,
