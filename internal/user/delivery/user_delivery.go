@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/celpung/gocleanarch/domain"
-	"github.com/celpung/gocleanarch/user/usecase"
+	"github.com/celpung/gocleanarch/internal/user/usecase"
 	"github.com/gin-gonic/gin"
 )
 

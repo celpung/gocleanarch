@@ -3,10 +3,10 @@ package user
 import (
 	"github.com/celpung/gocleanarch/configs"
 	"github.com/celpung/gocleanarch/infrastructure"
+	"github.com/celpung/gocleanarch/internal/user/delivery"
+	"github.com/celpung/gocleanarch/internal/user/repository"
+	"github.com/celpung/gocleanarch/internal/user/usecase"
 	"github.com/celpung/gocleanarch/middlewares"
-	"github.com/celpung/gocleanarch/user/delivery"
-	"github.com/celpung/gocleanarch/user/repository"
-	"github.com/celpung/gocleanarch/user/usecase"
 	"github.com/gin-gonic/gin"
 )
 

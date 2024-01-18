@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/celpung/gocleanarch/configs"
-	"github.com/celpung/gocleanarch/user"
+	"github.com/celpung/gocleanarch/internal/user"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
