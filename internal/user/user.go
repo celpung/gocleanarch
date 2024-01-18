@@ -2,7 +2,7 @@ package user
 
 import (
 	"github.com/celpung/gocleanarch/configs"
-	"github.com/celpung/gocleanarch/infrastructure"
+	"github.com/celpung/gocleanarch/services"
 	"github.com/celpung/gocleanarch/internal/user/delivery"
 	"github.com/celpung/gocleanarch/internal/user/repository"
 	"github.com/celpung/gocleanarch/internal/user/usecase"
@@ -11,8 +11,8 @@ import (
 )
 
 func Router(r *gin.Engine) {
-	passwordSrv := infrastructure.NewPasswordService()
-	jwtSrv := infrastructure.NewJwtService()
+	passwordSrv := services.NewPasswordService()
+	jwtSrv := services.NewJwtService()
 
 	userRepo := repository.NewUserRepository(configs.DB)
 	userUseCase := usecase.NewUserUseCase(userRepo, passwordSrv, jwtSrv)

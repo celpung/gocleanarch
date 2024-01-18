@@ -4,16 +4,16 @@ import (
 	"context"
 
 	"github.com/celpung/gocleanarch/domain"
-	"github.com/celpung/gocleanarch/infrastructure"
+	"github.com/celpung/gocleanarch/services"
 )
 
 type UserUsecase struct {
 	UserRepository domain.UserRepository
-	PasswordSrv    *infrastructure.PasswordService
-	Jwtsrv         *infrastructure.JwtService
+	PasswordSrv    *services.PasswordService
+	Jwtsrv         *services.JwtService
 }
 
-func NewUserUseCase(repository domain.UserRepository, passwordSrv *infrastructure.PasswordService, jwtSrv *infrastructure.JwtService) *UserUsecase {
+func NewUserUseCase(repository domain.UserRepository, passwordSrv *services.PasswordService, jwtSrv *services.JwtService) *UserUsecase {
 	return &UserUsecase{
 		UserRepository: repository,
 		PasswordSrv:    passwordSrv,
