@@ -20,7 +20,7 @@ func Router(r *gin.Engine) {
 
 	userRoutes := r.Group("/users")
 	{
-		userRoutes.POST("", middlewares.JWTMiddleware(configs.Admin), userDelivery.Create)
-		userRoutes.GET("", userDelivery.Read)
+		userRoutes.POST("", userDelivery.Create)
+		userRoutes.GET("", middlewares.JWTMiddleware(configs.Admin), userDelivery.Read)
 	}
 }
