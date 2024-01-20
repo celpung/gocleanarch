@@ -16,10 +16,10 @@ type User struct {
 	DeletedAt *time.Time `gorm:"index" json:"deleted_at"`
 }
 
-type UserRepository interface {
-	Create(user *User) error
-	Read(ctx context.Context) (user []User, err error)
-}
+// type UserRepository interface {
+// 	Create(user *User) error
+// 	Read(ctx context.Context) (user []User, err error)
+// }
 
 type UserUsecase interface {
 	Read(ctx context.Context) ([]User, error)
