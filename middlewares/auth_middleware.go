@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/celpung/gocleanarch/configs"
-	"github.com/dgrijalva/jwt-go/v4"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 )
 
 // JWT middleware function with role-based access control

@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/celpung/gocleanarch/domain"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 )
 
 type JwtService struct{}
