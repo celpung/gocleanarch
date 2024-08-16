@@ -3,9 +3,9 @@ package user_usecase_implementation
 import (
 	"errors"
 
-	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 	user_repository "github.com/celpung/gocleanarch/domain/user/repository"
 	user_usecase "github.com/celpung/gocleanarch/domain/user/usecase"
+	"github.com/celpung/gocleanarch/entity"
 	jwt_services "github.com/celpung/gocleanarch/services/jwt"
 	password_services "github.com/celpung/gocleanarch/services/password"
 )
@@ -17,7 +17,7 @@ type UserUsecaseStruct struct {
 }
 
 // Create implements user_usecase.UserUsecaseInterface.
-func (u *UserUsecaseStruct) Create(user *user_entity.User) (*user_entity.User, error) {
+func (u *UserUsecaseStruct) Create(user *entity.User) (*entity.User, error) {
 	// hashing password
 	hashedPassword, err := u.PasswordService.HashPassword(user.Password)
 	if err != nil {
@@ -38,19 +38,19 @@ func (u *UserUsecaseStruct) Delete(userID uint) error {
 }
 
 // Read implements user_usecase.UserUsecaseInterface.
-func (u *UserUsecaseStruct) Read() ([]*user_entity.User, error) {
+func (u *UserUsecaseStruct) Read() ([]*entity.User, error) {
 	// perform read all user
 	return u.UserRepository.Read()
 }
 
 // ReadByID implements user_usecase.UserUsecaseInterface.
-func (u *UserUsecaseStruct) ReadByID(userID uint) (*user_entity.User, error) {
+func (u *UserUsecaseStruct) ReadByID(userID uint) (*entity.User, error) {
 	// perform read user by id
 	return u.UserRepository.ReadByID(userID)
 }
 
 // Update implements user_usecase.UserUsecaseInterface.
-func (u *UserUsecaseStruct) Update(user *user_entity.User) (*user_entity.User, error) {
+func (u *UserUsecaseStruct) Update(user *entity.User) (*entity.User, error) {
 	// get user data by id
 	userData, err := u.UserRepository.ReadByID(user.ID)
 	if err != nil {

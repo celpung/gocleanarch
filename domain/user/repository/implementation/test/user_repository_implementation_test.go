@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	sqlite_configs "github.com/celpung/gocleanarch/configs/database/sqlite"
-	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 	user_repository_implementation "github.com/celpung/gocleanarch/domain/user/repository/implementation"
+	"github.com/celpung/gocleanarch/entity"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
@@ -27,7 +27,7 @@ func TestCreateUser(t *testing.T) {
 	userRepository := user_repository_implementation.NewUserRepositry(db)
 
 	// Create a user entity for testing
-	newUser := &user_entity.User{
+	newUser := &entity.User{
 		Name:     "Test User",
 		Email:    "test@example.com",
 		Password: "testpassword",
@@ -67,7 +67,7 @@ func TestGetAllUser(t *testing.T) {
 	userRepository := user_repository_implementation.NewUserRepositry(db)
 
 	// Create some user entities for testing
-	usersToCreate := []*user_entity.User{
+	usersToCreate := []*entity.User{
 		{Name: "User 1", Email: "user1@example.com", Password: "password1", Active: true, Role: 1},
 		{Name: "User 2", Email: "user2@example.com", Password: "password2", Active: true, Role: 2},
 		{Name: "User 3", Email: "user3@example.com", Password: "password3", Active: true, Role: 3},
@@ -114,7 +114,7 @@ func TestReadByIdUser(t *testing.T) {
 	userRepository := user_repository_implementation.NewUserRepositry(db)
 
 	// Create a user entity for testing
-	newUser := &user_entity.User{
+	newUser := &entity.User{
 		ID:       1,
 		Name:     "Test User",
 		Email:    "test@example.com",
@@ -153,7 +153,7 @@ func TestReadByEmailUser(t *testing.T) {
 	userRepository := user_repository_implementation.NewUserRepositry(db)
 
 	// Create a user entity for testing
-	newUser := &user_entity.User{
+	newUser := &entity.User{
 		ID:       1,
 		Name:     "Test User",
 		Email:    "test@example.com",
@@ -192,7 +192,7 @@ func TestUpdateUser(t *testing.T) {
 	userRepository := user_repository_implementation.NewUserRepositry(db)
 
 	// Create a user entity for testing
-	newUser := &user_entity.User{
+	newUser := &entity.User{
 		ID:       1,
 		Name:     "Test User",
 		Email:    "test@example.com",
@@ -203,7 +203,7 @@ func TestUpdateUser(t *testing.T) {
 
 	userRepository.Create(newUser)
 
-	newUserUpdate := &user_entity.User{
+	newUserUpdate := &entity.User{
 		ID:       1,
 		Name:     "updated User",
 		Email:    "updated@example.com",
@@ -241,7 +241,7 @@ func TestDeleteUser(t *testing.T) {
 	userRepository := user_repository_implementation.NewUserRepositry(db)
 
 	// Create a user entity for testing
-	newUser := &user_entity.User{
+	newUser := &entity.User{
 		ID:       1,
 		Name:     "Test User",
 		Email:    "test@example.com",
