@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
-	user_router "github.com/celpung/gocleanarch/domain/user/delivery/router"
+	user_router "github.com/celpung/gocleanarch/domain/user/delivery/http/router"
 	"github.com/joho/godotenv"
 )
 
