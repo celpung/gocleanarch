@@ -2,6 +2,8 @@ package user_router
 
 import (
 	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
+	middlewares "github.com/celpung/gocleanarch/configs/middlewares/gin"
+	"github.com/celpung/gocleanarch/configs/role"
 	user_delivery_implementation "github.com/celpung/gocleanarch/domain/user/delivery/gin/implementation"
 	user_repository_implementation "github.com/celpung/gocleanarch/domain/user/repository/implementation"
 	user_usecase_implementation "github.com/celpung/gocleanarch/domain/user/usecase/implementation"
@@ -22,7 +24,7 @@ func Router(r *gin.RouterGroup) {
 	{
 		routes.POST("/register", delivery.Register)
 		routes.POST("/login", delivery.Login)
-		// routes.GET("", middlewares.JWTMiddleware(role.Admin), delivery.GetAllUserData)
-		routes.GET("", delivery.GetAllUserData)
+		routes.GET("", middlewares.JWTMiddleware(role.Admin), delivery.GetAllUserData)
+		routes.PATCH("", middlewares.JWTMiddleware(role.User), delivery.UpdateUser)
 	}
 }

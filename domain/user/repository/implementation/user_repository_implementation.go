@@ -19,18 +19,10 @@ func (r *UserRepositoryStruct) Create(user *entity.User) (*entity.User, error) {
 	return user, nil
 }
 
-// Delete implements user_repository.UserRepositoryInterface.
-func (r *UserRepositoryStruct) Delete(userID uint) error {
-	if err := r.DB.Delete(&entity.User{}, userID).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
 // Read implements user_repository.UserRepositoryInterface.
 func (r *UserRepositoryStruct) Read() ([]*entity.User, error) {
 	var users []*entity.User
-	if err := r.DB.Find(&users).Error; err != nil {
+	if err := r.selectUserData(r.DB).Find(&users).Error; err != nil {
 		return nil, err
 	}
 
@@ -40,7 +32,7 @@ func (r *UserRepositoryStruct) Read() ([]*entity.User, error) {
 // ReadByID implements user_repository.UserRepositoryInterface.
 func (r *UserRepositoryStruct) ReadByID(userID uint) (*entity.User, error) {
 	var user entity.User
-	if err := r.DB.First(&user, userID).Error; err != nil {
+	if err := r.selectUserData(r.DB).First(&user, userID).Error; err != nil {
 		return nil, err
 	}
 
@@ -50,7 +42,7 @@ func (r *UserRepositoryStruct) ReadByID(userID uint) (*entity.User, error) {
 // ReadByEmail implements user_repository.UserRepositoryInterface.
 func (r *UserRepositoryStruct) ReadByEmail(email string) (*entity.User, error) {
 	var user entity.User
-	if err := r.DB.Where("email = ?", email).First(&user).Error; err != nil {
+	if err := r.selectUserData(r.DB).Where("email = ?", email).First(&user).Error; err != nil {
 		return nil, err
 	}
 
@@ -59,10 +51,22 @@ func (r *UserRepositoryStruct) ReadByEmail(email string) (*entity.User, error) {
 
 // Update implements user_repository.UserRepositoryInterface.
 func (r *UserRepositoryStruct) Update(user *entity.User) (*entity.User, error) {
-	if err := r.DB.Save(user).Error; err != nil {
+	if err := r.DB.Model(&entity.User{}).Where("id = ?", user.ID).Updates(user).Error; err != nil {
 		return nil, err
 	}
 	return user, nil
+}
+
+// Delete implements user_repository.UserRepositoryInterface.
+func (r *UserRepositoryStruct) Delete(userID uint) error {
+	if err := r.DB.Delete(&entity.User{}, userID).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *UserRepositoryStruct) selectUserData(db *gorm.DB) *gorm.DB {
+	return db.Select("ID, Name, Email, Active, Role")
 }
 
 func NewUserRepositry(db *gorm.DB) user_repository.UserRepositoryInterface {

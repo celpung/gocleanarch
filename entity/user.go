@@ -13,3 +13,20 @@ type User struct {
 	UpdatedAt time.Time  `gorm:"autoUpdateTime" json:"updated_at"`
 	DeletedAt *time.Time `gorm:"index" json:"deleted_at"`
 }
+
+type UserUpdate struct {
+	ID       uint   `json:"id"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Active   bool   `json:"active"`
+	Role     uint   `json:"role"`
+}
+
+type UserHttpResponse struct {
+	ID     uint   `json:"id"`
+	Name   string `json:"name"`
+	Email  string `json:"email"`
+	Active bool   `json:"active"`
+	Role   uint   `json:"role"`
+}

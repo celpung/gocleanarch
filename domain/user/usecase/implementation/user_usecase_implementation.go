@@ -17,7 +17,7 @@ type UserUsecaseStruct struct {
 }
 
 // Create implements user_usecase.UserUsecaseInterface.
-func (u *UserUsecaseStruct) Create(user *entity.User) (*entity.User, error) {
+func (u *UserUsecaseStruct) Create(user *entity.User) (*entity.UserHttpResponse, error) {
 	// hashing password
 	hashedPassword, err := u.PasswordService.HashPassword(user.Password)
 	if err != nil {
@@ -28,7 +28,20 @@ func (u *UserUsecaseStruct) Create(user *entity.User) (*entity.User, error) {
 	user.Password = hashedPassword
 
 	// perform create user
-	return u.UserRepository.Create(user)
+	user, userErr := u.UserRepository.Create(user)
+	if userErr != nil {
+		return nil, userErr
+	}
+
+	userResponse := &entity.UserHttpResponse{
+		ID:     user.ID,
+		Name:   user.Name,
+		Email:  user.Email,
+		Active: user.Active,
+		Role:   user.Role,
+	}
+
+	return userResponse, nil
 }
 
 // Delete implements user_usecase.UserUsecaseInterface.
@@ -38,31 +51,90 @@ func (u *UserUsecaseStruct) Delete(userID uint) error {
 }
 
 // Read implements user_usecase.UserUsecaseInterface.
-func (u *UserUsecaseStruct) Read() ([]*entity.User, error) {
+func (u *UserUsecaseStruct) Read() ([]*entity.UserHttpResponse, error) {
 	// perform read all user
-	return u.UserRepository.Read()
-}
-
-// ReadByID implements user_usecase.UserUsecaseInterface.
-func (u *UserUsecaseStruct) ReadByID(userID uint) (*entity.User, error) {
-	// perform read user by id
-	return u.UserRepository.ReadByID(userID)
-}
-
-// Update implements user_usecase.UserUsecaseInterface.
-func (u *UserUsecaseStruct) Update(user *entity.User) (*entity.User, error) {
-	// get user data by id
-	userData, err := u.UserRepository.ReadByID(user.ID)
+	user, err := u.UserRepository.Read()
 	if err != nil {
 		return nil, err
 	}
 
-	// update the current user data into new user data as needed
-	userData.Name = user.Name
-	userData.Email = user.Email
+	var userResponse []*entity.UserHttpResponse
+	for _, v := range user {
+		userResponse = append(userResponse, &entity.UserHttpResponse{
+			ID:     v.ID,
+			Name:   v.Name,
+			Email:  v.Email,
+			Active: v.Active,
+			Role:   v.Role,
+		})
+	}
+	return userResponse, nil
 
-	// perform update user
-	return u.UserRepository.Update(userData)
+	// return u.UserRepository.Read()
+}
+
+// ReadByID implements user_usecase.UserUsecaseInterface.
+func (u *UserUsecaseStruct) ReadByID(userID uint) (*entity.UserHttpResponse, error) {
+	// perform read user by id
+	user, userErr := u.UserRepository.ReadByID(userID)
+	if userErr != nil {
+		return nil, userErr
+	}
+
+	userResponse := &entity.UserHttpResponse{
+		ID:     user.ID,
+		Name:   user.Name,
+		Email:  user.Email,
+		Active: user.Active,
+		Role:   user.Role,
+	}
+
+	return userResponse, nil
+}
+
+// Update implements user_usecase.UserUsecaseInterface.
+func (u *UserUsecaseStruct) Update(user *entity.UserUpdate) (*entity.UserHttpResponse, error) {
+	existingUser, err := u.UserRepository.ReadByID(user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update only the non-zero fields
+	if user.Name != "" {
+		existingUser.Name = user.Name
+	}
+	if user.Email != "" {
+		existingUser.Email = user.Email
+	}
+	if user.Password != "" {
+		hashedPassword, err := u.PasswordService.HashPassword(user.Password)
+		if err != nil {
+			return nil, err
+		}
+		existingUser.Password = hashedPassword
+	}
+	if user.Active {
+		existingUser.Active = user.Active
+	}
+	if user.Role > 0 {
+		existingUser.Role = user.Role
+	}
+
+	// Perform the update operation
+	updatedUser, err := u.UserRepository.Update(existingUser)
+	if err != nil {
+		return nil, err
+	}
+
+	userResponse := &entity.UserHttpResponse{
+		ID:     updatedUser.ID,
+		Name:   updatedUser.Name,
+		Email:  updatedUser.Email,
+		Active: updatedUser.Active,
+		Role:   updatedUser.Role,
+	}
+
+	return userResponse, nil
 }
 
 // Login implements user_usecase.UserUsecaseInterface.

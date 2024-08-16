@@ -91,6 +91,31 @@ func (d *UserDeliveryStruct) GetAllUserData(w http.ResponseWriter, r *http.Reque
 	})
 }
 
+func (d *UserDeliveryStruct) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	if !utils.RequestMethodCheck(w, r, http.MethodPatch) {
+		return
+	}
+
+	var updateData *entity.UserUpdate
+	if err := json.NewDecoder(r.Body).Decode(&updateData); err != nil {
+		http.Error(w, "Failed to bind update data: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	user, err := d.UserUsecase.Update(updateData)
+	if err != nil {
+		http.Error(w, "Failed to create user: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Success fetch user data!",
+		"user":    user,
+	})
+}
+
 func NewUserDelivery(usecase user_usecase.UserUsecaseInterface) user_delivery.UserDeliveryInterface {
 	return &UserDeliveryStruct{
 		UserUsecase: usecase,

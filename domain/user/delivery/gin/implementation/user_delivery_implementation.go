@@ -104,6 +104,34 @@ func (d *UserDeliveryStruct) GetAllUserData(c *gin.Context) {
 	})
 }
 
+func (d *UserDeliveryStruct) UpdateUser(c *gin.Context) {
+	var updateData entity.UserUpdate
+	if err := c.ShouldBindJSON(&updateData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Failed to bind data!",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	user, err := d.UserUsecase.Update(&updateData)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Failed to update data!",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Success fetch user data!",
+		"user":    user,
+	})
+}
+
 func NewUserDelivery(usecase user_usecase.UserUsecaseInterface) user_delivery.UserDeliveryInterface {
 	return &UserDeliveryStruct{
 		UserUsecase: usecase,

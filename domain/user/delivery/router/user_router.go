@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
+	"github.com/celpung/gocleanarch/configs/middlewares"
+	"github.com/celpung/gocleanarch/configs/role"
 	user_delivery_implementation "github.com/celpung/gocleanarch/domain/user/delivery/implementation"
 	user_repository_implementation "github.com/celpung/gocleanarch/domain/user/repository/implementation"
 	user_usecase_implementation "github.com/celpung/gocleanarch/domain/user/usecase/implementation"
@@ -21,6 +23,6 @@ func Router() {
 
 	http.HandleFunc("/users/register", delivery.Register)
 	http.HandleFunc("/users/login", delivery.Login)
-	// http.HandleFunc("/users", middlewares.JWTMiddleware(role.Admin, delivery.GetAllUserData))
-	http.HandleFunc("/users", delivery.GetAllUserData)
+	http.HandleFunc("/users", middlewares.JWTMiddleware(role.Admin, delivery.GetAllUserData))
+	http.HandleFunc("/users/update", middlewares.JWTMiddleware(role.User, delivery.UpdateUser))
 }
