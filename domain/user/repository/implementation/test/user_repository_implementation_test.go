@@ -165,7 +165,7 @@ func TestReadByEmailUser(t *testing.T) {
 	userRepository.Create(newUser)
 
 	// Call the Read method to get user by id
-	user, err := userRepository.ReadByEmail(newUser.Email)
+	user, err := userRepository.ReadByEmail(newUser.Email, false)
 
 	// Check if there is no error
 	assert.NoError(t, err)

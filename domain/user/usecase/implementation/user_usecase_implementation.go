@@ -2,6 +2,7 @@ package user_usecase_implementation
 
 import (
 	"errors"
+	"fmt"
 
 	user_repository "github.com/celpung/gocleanarch/domain/user/repository"
 	user_usecase "github.com/celpung/gocleanarch/domain/user/usecase"
@@ -140,11 +141,13 @@ func (u *UserUsecaseStruct) Update(user *entity.UserUpdate) (*entity.UserHttpRes
 // Login implements user_usecase.UserUsecaseInterface.
 func (u *UserUsecaseStruct) Login(email, password string) (string, error) {
 	// perform read user by email
-	user, err := u.UserRepository.ReadByEmail(email)
+	user, err := u.UserRepository.ReadByEmail(email, true)
 	if err != nil {
 		return "", err
 	}
 
+	fmt.Println(user.Email)
+	fmt.Println(password)
 	// check is user active
 	if !user.Active {
 		return "", errors.New("user not active")

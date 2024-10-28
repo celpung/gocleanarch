@@ -40,10 +40,16 @@ func (r *UserRepositoryStruct) ReadByID(userID uint) (*entity.User, error) {
 }
 
 // ReadByEmail implements user_repository.UserRepositoryInterface.
-func (r *UserRepositoryStruct) ReadByEmail(email string) (*entity.User, error) {
+func (r *UserRepositoryStruct) ReadByEmail(email string, isLogin bool) (*entity.User, error) {
 	var user entity.User
-	if err := r.selectUserData(r.DB).Where("email = ?", email).First(&user).Error; err != nil {
-		return nil, err
+	if isLogin {
+		if err := r.DB.Where("email = ?", email).First(&user).Error; err != nil {
+			return nil, err
+		}
+	} else {
+		if err := r.selectUserData(r.DB).Where("email = ?", email).First(&user).Error; err != nil {
+			return nil, err
+		}
 	}
 
 	return &user, nil
