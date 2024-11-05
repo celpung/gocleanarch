@@ -1,0 +1,70 @@
+name: CI/CD Go App
+on:
+  push:
+    branches: ["production"]
+
+jobs:
+  build:
+    environment: production
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Connect to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          file: ./Dockerfile
+          push: true
+          tags: ${{ env.IMAGE_NAME }}
+
+  deployment:
+    needs: build
+    environment: production
+    runs-on: ubuntu-latest
+    env:
+      CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
+      IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_SSH_PORT }}
+          script: |
+            whoami
+            docker stop ${{ env.CONTAINER_NAME }} || true && docker rm ${{ env.CONTAINER_NAME }} || true
+            docker pull ${{ env.IMAGE_NAME }}
+            docker run -d --name ${{ env.CONTAINER_NAME }} -p 8080:8080 \
+              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              -e DB_NAME=${{ secrets.DB_NAME }} \
+              -e DB_PORT=${{ secrets.DB_PORT }} \
+              -e DB_HOST=${{ secrets.DB_HOST }} \
+              -e DB_DIALECT=${{ secrets.DB_DIALECT }} \
+              -e JWT_TOKEN=${{ secrets.JWT_TOKEN }} \
+              ${{ env.IMAGE_NAME }}
+
+      - name: Clean up unused Docker images
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_SSH_PORT }}
+          script: |
+            docker image prune -a -f
+        

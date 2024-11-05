@@ -5,9 +5,9 @@ import (
 	"log"
 	"os"
 	"reflect"
-	"strings"
 
 	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
+	"github.com/celpung/gocleanarch/configs/environment"
 	user_router "github.com/celpung/gocleanarch/domain/user/delivery/gin/router"
 	"github.com/celpung/gocleanarch/entity"
 	crud_router "github.com/celpung/gocleanarch/utils/crud/delivery/router"
@@ -19,7 +19,7 @@ import (
 func main() {
 	// load .env
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env", err)
+		log.Println("No .env file found, using environment variables from system")
 	}
 
 	// Connect to the database and auto migrate
@@ -42,19 +42,13 @@ func main() {
 		fmt.Println("Please set the mode debug/release on environment!")
 		fmt.Println("Example : [MODE: debug] or [MODE: release]")
 		fmt.Println("-------------------------------------------------")
-		panic("Critical error, cannot find mode on environment!")
+		// panic("Critical error, cannot find mode on environment!")
 	}
 
-	// setup cors
-	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
-	if allowedOrigins == "" {
-		log.Fatal("ALLOWED_ORIGINS environment variable is not set")
-	}
-	origins := strings.Split(allowedOrigins, ",")
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:  origins,
+		AllowOrigins:  environment.Env.AllowedOrigins,
 		AllowMethods:  []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:  []string{"Origin", "Content-Type", "Authorization"},
+		AllowHeaders:  []string{"Origin", "Content-Type", "Authorization", "x-api-key", "X-API-Key"},
 		ExposeHeaders: []string{"Content-Length"},
 	}))
 
@@ -82,5 +76,5 @@ func main() {
 	r.Static("/images", "../../public/images")
 
 	// Start the server
-	r.Run(fmt.Sprintf(":%s", os.Getenv("PORT")))
+	r.Run(fmt.Sprintf(":%s", environment.Env.Port))
 }
