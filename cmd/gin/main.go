@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"time"
 
 	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
 	"github.com/celpung/gocleanarch/configs/environment"
@@ -46,10 +47,12 @@ func main() {
 	}
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:  environment.Env.AllowedOrigins,
-		AllowMethods:  []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:  []string{"Origin", "Content-Type", "Authorization", "x-api-key", "X-API-Key"},
-		ExposeHeaders: []string{"Content-Length"},
+		AllowOrigins:     environment.Env.AllowedOrigins,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
 	}))
 
 	// setup router
