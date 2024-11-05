@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"strings"
 
 	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
 	user_router "github.com/celpung/gocleanarch/domain/user/delivery/gin/router"
+	"github.com/celpung/gocleanarch/entity"
+	crud_router "github.com/celpung/gocleanarch/utils/crud/delivery/router"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -58,6 +61,18 @@ func main() {
 	// setup router
 	api := r.Group("/api")
 	user_router.Router(api)
+
+	crud_router.SetupRouter[entity.Slider](
+		api,
+		mysql_configs.DB,
+		reflect.TypeOf(entity.Slider{}),
+		"/sliders",
+		map[string][]gin.HandlerFunc{
+			"POST":   {},
+			"READ":   {},
+			"PUT":    {},
+			"DELETE": {},
+		})
 
 	// Serve static files
 	r.GET("/", func(c *gin.Context) {

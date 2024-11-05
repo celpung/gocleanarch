@@ -63,6 +63,7 @@ func AutoMigrage() {
 	ConnectDatabase()
 	if migrateErr := DB.AutoMigrate(
 		&entity.User{},
+		&entity.Slider{},
 	); migrateErr != nil {
 		panic(migrateErr)
 	}
