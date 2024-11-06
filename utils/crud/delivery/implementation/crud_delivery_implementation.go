@@ -45,7 +45,9 @@ func (d *DeliveryStruct[T]) Create(c *gin.Context) {
 		entityValue := reflect.ValueOf(&entity).Elem()
 
 		for key, value := range formData {
-			field := entityValue.FieldByName(strings.Title(key)) // Capitalize key
+			// Transform form field name to match struct field name
+			fieldName := toFieldName(key)
+			field := entityValue.FieldByName(fieldName)
 			if field.IsValid() && field.CanSet() {
 				if key == "date" && field.Type() == reflect.TypeOf(time.Time{}) {
 					// Parse the date string to time.Time
@@ -180,9 +182,21 @@ func (d *DeliveryStruct[T]) Update(c *gin.Context) {
 		entityValue := reflect.ValueOf(&entity).Elem()
 
 		for key, value := range formData {
-			field := entityValue.FieldByName(strings.Title(key))
-			if field.IsValid() && field.CanSet() && field.Kind() == reflect.String {
-				field.SetString(value)
+			// Transform form field name to match struct field name
+			fieldName := toFieldName(key)
+			field := entityValue.FieldByName(fieldName)
+			if field.IsValid() && field.CanSet() {
+				if key == "date" && field.Type() == reflect.TypeOf(time.Time{}) {
+					// Parse the date string to time.Time
+					parsedDate, err := time.Parse(time.RFC3339, value)
+					if err != nil {
+						c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format"})
+						return
+					}
+					field.Set(reflect.ValueOf(parsedDate))
+				} else if field.Kind() == reflect.String {
+					field.SetString(value)
+				}
 			}
 		}
 
@@ -279,6 +293,11 @@ func (d *DeliveryStruct[T]) Search(c *gin.Context) {
 
 	// Return the search results
 	c.JSON(http.StatusOK, results)
+}
+
+func toFieldName(formName string) string {
+	// Replace underscores with spaces, then capitalize each word
+	return strings.ReplaceAll(strings.Title(strings.ReplaceAll(formName, "_", " ")), " ", "")
 }
 
 // NewDelivery creates a new delivery instance for a given entity.
