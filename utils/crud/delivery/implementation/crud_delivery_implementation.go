@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/celpung/gocleanarch/helper"
 	crud_usecase "github.com/celpung/gocleanarch/utils/crud/usecase"
@@ -18,72 +19,6 @@ type DeliveryStruct[T any] struct {
 	usecase crud_usecase.UsecaseInterface[T]
 }
 
-// Create handles the creation of a new entity.
-// func (d *DeliveryStruct[T]) Create(c *gin.Context) {
-// 	var entity T
-
-// 	// Check if the request content type is multipart/form-data
-// 	if c.ContentType() == "multipart/form-data" {
-// 		// Use a map to hold dynamic form data
-// 		formData := make(map[string]string)
-
-// 		// Parse the multipart form
-// 		if err := c.Request.ParseMultipartForm(32 << 20); err != nil {
-// 			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse multipart form: " + err.Error()})
-// 			return
-// 		}
-
-// 		// Bind non-file form fields to the map
-// 		for key := range c.Request.MultipartForm.Value {
-// 			formData[key] = c.Request.FormValue(key)
-// 		}
-
-// 		// Log the received form data for debugging
-// 		log.Printf("Received form data: %+v\n", formData)
-
-// 		// Populate the entity using reflection
-// 		entityValue := reflect.ValueOf(&entity).Elem()
-
-// 		for key, value := range formData {
-// 			field := entityValue.FieldByName(strings.Title(key)) // Capitalize the key
-// 			if field.IsValid() && field.CanSet() && field.Kind() == reflect.String {
-// 				field.SetString(value) // Set string fields directly
-// 			}
-// 		}
-
-// 		// Handle the uploaded file
-// 		uploadedFile, err := gouploader.Single(c.Request, "./public/files", "file")
-// 		if err != nil {
-// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "File upload failed: " + err.Error()})
-// 			return
-// 		}
-
-// 		// Assign the file path to the appropriate field in the entity
-// 		imageField := entityValue.FieldByName("File") // Ensure this matches your struct
-// 		if imageField.IsValid() && imageField.Kind() == reflect.String {
-// 			imageField.SetString(uploadedFile.Filename) // Set the file path to the File field
-// 		}
-
-// 	} else {
-// 		// If not multipart/form-data, assume it's JSON and bind as JSON
-// 		if err := c.ShouldBindJSON(&entity); err != nil {
-// 			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to bind JSON data: " + err.Error()})
-// 			return
-// 		}
-// 	}
-
-// 	// Log the populated entity to see what is being sent to the database
-// 	log.Printf("Creating entity: %+v\n", entity)
-
-// 	// Pass the populated entity to the use case for creation
-// 	createdEntity, err := d.usecase.Create(&entity)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-//		c.JSON(http.StatusCreated, createdEntity)
-//	}
 func (d *DeliveryStruct[T]) Create(c *gin.Context) {
 	var entity T
 
@@ -110,9 +45,19 @@ func (d *DeliveryStruct[T]) Create(c *gin.Context) {
 		entityValue := reflect.ValueOf(&entity).Elem()
 
 		for key, value := range formData {
-			field := entityValue.FieldByName(strings.Title(key)) // Capitalize the key
-			if field.IsValid() && field.CanSet() && field.Kind() == reflect.String {
-				field.SetString(value) // Set string fields directly
+			field := entityValue.FieldByName(strings.Title(key)) // Capitalize key
+			if field.IsValid() && field.CanSet() {
+				if key == "date" && field.Type() == reflect.TypeOf(time.Time{}) {
+					// Parse the date string to time.Time
+					parsedDate, err := time.Parse(time.RFC3339, value)
+					if err != nil {
+						c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format"})
+						return
+					}
+					field.Set(reflect.ValueOf(parsedDate))
+				} else if field.Kind() == reflect.String {
+					field.SetString(value)
+				}
 			}
 		}
 
