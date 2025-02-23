@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
+	"github.com/celpung/gocleanarch/configs/environment"
 	user_router "github.com/celpung/gocleanarch/domain/user/delivery/http/router"
 	"github.com/joho/godotenv"
 )
@@ -24,7 +25,7 @@ func main() {
 	mysql_configs.AutoMigrage()
 
 	// Setup mode
-	mode := os.Getenv("MODE")
+	mode := environment.Env.MODE
 
 	if mode != "debug" && mode != "release" {
 		fmt.Println("-------------------------------------------------")
@@ -60,7 +61,7 @@ func main() {
 	http.Handle("/images/", http.StripPrefix("/images", http.FileServer(http.Dir("../../public/images"))))
 
 	// Log the startup message in debug mode
-	port := os.Getenv("PORT")
+	port := environment.Env.PORT
 	if mode == "debug" {
 		log.Printf("Application is running in debug mode on port %s", port)
 	}

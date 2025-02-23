@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 	"reflect"
 	"time"
 
@@ -28,26 +27,23 @@ func main() {
 	mysql_configs.ConnectDatabase()
 	mysql_configs.AutoMigrage()
 
+	// setup mode
+	mode := environment.Env.MODE
+
+	if mode == "release" {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
+
 	//setup gin
 	r := gin.Default()
 
-	// setup mode
-	mode := os.Getenv("MODE")
-
-	if mode == "debug" {
-		gin.SetMode(gin.DebugMode)
-	} else if mode == "release" {
-		gin.SetMode(gin.ReleaseMode)
-	} else {
-		fmt.Println("-------------------------------------------------")
-		fmt.Println("Please set the mode debug/release on environment!")
-		fmt.Println("Example : [MODE: debug] or [MODE: release]")
-		fmt.Println("-------------------------------------------------")
-		// panic("Critical error, cannot find mode on environment!")
-	}
-
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     environment.Env.AllowedOrigins,
+		AllowOrigins: []string{
+			"http://localhost:5173",
+			"http://localhost",
+		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -79,5 +75,5 @@ func main() {
 	r.Static("/images", "../../public/images")
 
 	// Start the server
-	r.Run(fmt.Sprintf(":%s", environment.Env.Port))
+	r.Run(fmt.Sprintf(":%s", environment.Env.PORT))
 }

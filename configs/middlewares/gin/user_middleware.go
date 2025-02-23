@@ -13,10 +13,10 @@ import (
 
 // JWT middleware function with role-based access control
 func JWTMiddleware(requiredRole role.Role) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		tokenString := ctx.GetHeader("Authorization")
+	return func(c *gin.Context) {
+		tokenString := c.GetHeader("Authorization")
 		if tokenString == "" {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"success": false,
 				"message": "Token not found!",
 				"error":   "Unauthorized",
@@ -38,7 +38,7 @@ func JWTMiddleware(requiredRole role.Role) gin.HandlerFunc {
 		})
 
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"success": false,
 				"message": "Unauthorized",
 				"error":   err.Error(),
@@ -48,7 +48,7 @@ func JWTMiddleware(requiredRole role.Role) gin.HandlerFunc {
 
 		// Check if the token is valid
 		if !token.Valid {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"success": false,
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"success": false,
 				"message": "Unauthorized",
 				"error":   err,
 			})
@@ -57,7 +57,7 @@ func JWTMiddleware(requiredRole role.Role) gin.HandlerFunc {
 
 		userRoleClaim, ok := token.Claims.(jwt.MapClaims)["role"].(float64)
 		if !ok {
-			ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 				"success": false,
 				"message": "Forbidden access!",
 				"error":   "Role claim is not match",
@@ -67,7 +67,7 @@ func JWTMiddleware(requiredRole role.Role) gin.HandlerFunc {
 
 		userRole := role.Role(userRoleClaim)
 		if userRole < requiredRole {
-			ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 				"success": false,
 				"message": "Forbidden access!",
 				"error":   "Unauthorized",
@@ -76,11 +76,11 @@ func JWTMiddleware(requiredRole role.Role) gin.HandlerFunc {
 		}
 
 		// Set the authenticated user in the context
-		ctx.Set("userID", token.Claims.(jwt.MapClaims)["id"])
-		ctx.Set("email", token.Claims.(jwt.MapClaims)["email"])
-		ctx.Set("role", token.Claims.(jwt.MapClaims)["role"])
+		c.Set("userID", token.Claims.(jwt.MapClaims)["id"])
+		c.Set("email", token.Claims.(jwt.MapClaims)["email"])
+		c.Set("role", token.Claims.(jwt.MapClaims)["role"])
 
 		// Call the next middleware/handler function in the chain
-		ctx.Next()
+		c.Next()
 	}
 }

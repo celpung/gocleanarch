@@ -2,33 +2,41 @@ package environment
 
 import (
 	"log"
-	"strings"
+	"os"
 
 	"github.com/joho/godotenv"
 )
 
 type Environment struct {
-	BaseURL              string
-	Port                 string
-	EmailConfirmationURL string
-	AppName              string
-	AllowedOrigins       []string
+	BASE_URL               string
+	PORT                   string
+	EMAIL_CONFIRMATION_URL string
+	APP_NAME               string
+	MODE                   string
 }
 
 var Env Environment
 
 func init() {
-	// Load .env file if exists
+	// Load .env file if it exists
 	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, using environment variables from hardcoded values ")
+		log.Println("No .env file found, using hardcoded values")
 	}
 
-	// Initialize the environment variables (either from .env or hardcoded)
+	// Initialize environment variables with fallback to hardcoded defaults
 	Env = Environment{
-		BaseURL:              "http://localhost:8080",
-		Port:                 "8080",
-		EmailConfirmationURL: "http://localhost:8080",
-		AppName:              "Gocleanarch",
-		AllowedOrigins:       strings.Split("http://localhost,http://localhost:5173", ","),
+		BASE_URL:               getEnv("BASE_URL", "http://localhost"),
+		PORT:                   getEnv("PORT", "8080"),
+		EMAIL_CONFIRMATION_URL: getEnv("EMAIL_CONFIRMATION_URL", "http://localhost:8080/api/users/verify-email"),
+		APP_NAME:               getEnv("APP_NAME", "GoCleanArch"),
+		MODE:                   getEnv("MODE", "debug"),
 	}
+}
+
+// getEnv retrieves an environment variable or returns a default value if not set
+func getEnv(key, fallback string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return fallback
 }

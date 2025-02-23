@@ -56,6 +56,13 @@ jobs:
               -e DB_HOST=${{ secrets.DB_HOST }} \
               -e DB_DIALECT=${{ secrets.DB_DIALECT }} \
               -e JWT_TOKEN=${{ secrets.JWT_TOKEN }} \
+              -e MODE=release \
+              -e SMTP_HOST=${{ secrets.SMTP_HOST }} \
+              -e SMTP_PORT=${{ secrets.SMTP_PORT }} \
+              -e SMTP_USER=${{ secrets.SMTP_USER }} \
+              -e SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }} \
+              -e SMTP_EMAIL_SENDER=${{ secrets.SMTP_EMAIL_SENDER }} \
+              -e APP_NAME=${{ env.APP_NAME }} \
               ${{ env.IMAGE_NAME }}
 
       - name: Clean up unused Docker images
