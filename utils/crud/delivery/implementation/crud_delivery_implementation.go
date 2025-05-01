@@ -1,7 +1,6 @@
 package crud_delivery_implementation
 
 import (
-	"log"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -37,9 +36,6 @@ func (d *DeliveryStruct[T]) Create(c *gin.Context) {
 		for key := range c.Request.MultipartForm.Value {
 			formData[key] = c.Request.FormValue(key)
 		}
-
-		// Log the received form data for debugging
-		log.Printf("Received form data: %+v\n", formData)
 
 		// Populate the entity using reflection
 		entityValue := reflect.ValueOf(&entity).Elem()
@@ -102,9 +98,6 @@ func (d *DeliveryStruct[T]) Create(c *gin.Context) {
 		}
 	}
 
-	// Log the populated entity to see what is being sent to the database
-	log.Printf("Creating entity: %+v\n", entity)
-
 	// Pass the populated entity to the use case for creation
 	createdEntity, err := d.usecase.Create(&entity)
 	if err != nil {
@@ -129,8 +122,33 @@ func (d *DeliveryStruct[T]) Read(c *gin.Context) {
 		return
 	}
 
-	preloadFields := c.QueryArray("preload")
-	entities, err := d.usecase.Read(page, limit, preloadFields...)
+	sort := c.DefaultQuery("sort", "")
+
+	preloadFields := c.QueryArray("include")
+
+	conditions := make(map[string]any)
+
+	// Exclude known keys (pagination and sorting)
+	excludeKeys := map[string]bool{
+		"page":    true,
+		"limit":   true,
+		"sort":    true,
+		"include": true,
+	}
+
+	// Loop through all query params
+	for key, values := range c.Request.URL.Query() {
+		if !excludeKeys[key] && len(values) > 0 {
+			// If value is explicitly "" (empty string), treat as NULL or empty
+			if values[0] == "" {
+				conditions[key] = "" // OR Handle as NULL if preferred
+			} else {
+				conditions[key] = values[0]
+			}
+		}
+	}
+
+	entities, err := d.usecase.Read(page, limit, sort, conditions, preloadFields...)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -152,7 +170,8 @@ func (d *DeliveryStruct[T]) ReadByID(c *gin.Context) {
 		return
 	}
 
-	preloadFields := c.QueryArray("preload")
+	preloadFields := c.QueryArray("include")
+
 	entity, err := d.usecase.ReadByID(uint(id), preloadFields...)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -176,8 +195,6 @@ func (d *DeliveryStruct[T]) Update(c *gin.Context) {
 		for key := range c.Request.MultipartForm.Value {
 			formData[key] = c.Request.FormValue(key)
 		}
-
-		log.Printf("Received form data: %+v\n", formData)
 
 		entityValue := reflect.ValueOf(&entity).Elem()
 
@@ -251,8 +268,6 @@ func (d *DeliveryStruct[T]) Update(c *gin.Context) {
 		}
 	}
 
-	log.Printf("Updating entity: %+v\n", entity)
-
 	updatedEntity, err := d.usecase.Update(&entity)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -283,9 +298,16 @@ func (d *DeliveryStruct[T]) Delete(c *gin.Context) {
 func (d *DeliveryStruct[T]) Search(c *gin.Context) {
 	// Get the search query from the request
 	searchQuery := c.Query("query")
+	preloads := c.Query("include")
+
+	// Handle case where preloads might be null or not set
+	var preloadFields []string
+	if preloads != "" {
+		preloadFields = strings.Split(preloads, ",")
+	}
 
 	// Call the use case to search based on the query string
-	results, err := d.usecase.Search(searchQuery)
+	results, err := d.usecase.Search(searchQuery, preloadFields...)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -293,6 +315,16 @@ func (d *DeliveryStruct[T]) Search(c *gin.Context) {
 
 	// Return the search results
 	c.JSON(http.StatusOK, results)
+}
+
+func (d *DeliveryStruct[T]) Count(c *gin.Context) {
+	count, err := d.usecase.Count()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"count": count})
 }
 
 func toFieldName(formName string) string {

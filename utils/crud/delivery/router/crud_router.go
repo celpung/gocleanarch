@@ -4,6 +4,7 @@ package crud_router
 import (
 	"reflect"
 
+	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
 	crud_delivery_implementation "github.com/celpung/gocleanarch/utils/crud/delivery/implementation"
 	crud_repository_implementation "github.com/celpung/gocleanarch/utils/crud/repository/implementation"
 	crud_usecase_implementation "github.com/celpung/gocleanarch/utils/crud/usecase/implementation"
@@ -13,7 +14,7 @@ import (
 
 // SetupRouter sets up the routes for a given entity and prefix with route-specific middleware.
 func SetupRouter[T any](r *gin.RouterGroup, db *gorm.DB, entityType reflect.Type, prefix string, middlewares map[string][]gin.HandlerFunc) {
-	repo := crud_repository_implementation.NewRepository[T](db)
+	repo := crud_repository_implementation.NewRepository[T](mysql_configs.DB)
 	usecase := crud_usecase_implementation.NewUsecase(repo)
 	delivery := crud_delivery_implementation.NewDelivery(usecase)
 
@@ -38,4 +39,6 @@ func SetupRouter[T any](r *gin.RouterGroup, db *gorm.DB, entityType reflect.Type
 	applyRoute("DELETE", "/:id", delivery.Delete)
 
 	applyRoute("GET", "/search", delivery.Search)
+
+	applyRoute("GET", "/count", delivery.Count)
 }

@@ -9,4 +9,5 @@ type DeliveryInterface[T any] interface {
 	Update(c *gin.Context)
 	Delete(c *gin.Context)
 	Search(c *gin.Context)
+	Count(c *gin.Context)
 }
