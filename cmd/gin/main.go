@@ -6,11 +6,11 @@ import (
 	"reflect"
 	"time"
 
+	crud_router "github.com/celpung/go-generic-crud/crud_router"
 	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
 	"github.com/celpung/gocleanarch/configs/environment"
 	user_router "github.com/celpung/gocleanarch/domain/user/delivery/gin/router"
 	"github.com/celpung/gocleanarch/entity"
-	crud_router "github.com/celpung/gocleanarch/utils/crud/delivery/router"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
