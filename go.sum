@@ -10,6 +10,8 @@ github.com/celpung/go-generic-crud v1.0.0 h1:lONJrg1jPbW0GQurqBKomskJ1y51ioZpRXR
 github.com/celpung/go-generic-crud v1.0.0/go.mod h1:qqG3wTRmy09GOERMebmp1JFbho+1cgE66DdbX983EZI=
 github.com/celpung/go-generic-crud v1.0.1 h1:daF6aDwW+h6LTe2Td023dWb9nhpW1e0wzjS/zK62Ye0=
 github.com/celpung/go-generic-crud v1.0.1/go.mod h1:qqG3wTRmy09GOERMebmp1JFbho+1cgE66DdbX983EZI=
+github.com/celpung/go-generic-crud v1.0.2 h1:oHwA+0GKfjiEo7yw24eFmvE6rQkHYa2QdwNVNLFEtq0=
+github.com/celpung/go-generic-crud v1.0.2/go.mod h1:qqG3wTRmy09GOERMebmp1JFbho+1cgE66DdbX983EZI=
 github.com/celpung/gouploader v1.0.0 h1:3ch6rvcRfidk3u0xGOt4yP0lKGT9xiYkMDWP/9gqrWo=
 github.com/celpung/gouploader v1.0.0/go.mod h1:KVjfTgJJE1GoIRdiv+T1wP8TQ513ZHv9KlJT0GyDd0w=
 github.com/cloudwego/base64x v0.1.4 h1:jwCgWpFanWmN8xoIUHa2rtzmkd5J2plF/dnLS6Xd/0Y=
