@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 
 	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
@@ -36,7 +35,7 @@ func main() {
 	}
 
 	// Setup CORS headers
-	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
+	allowedOrigins := environment.Env.ALLOWED_ORIGINS
 	if allowedOrigins == "" {
 		log.Fatal("ALLOWED_ORIGINS environment variable is not set")
 	}

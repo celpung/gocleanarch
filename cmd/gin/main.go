@@ -62,7 +62,7 @@ func main() {
 		"/sliders",
 		map[string][]gin.HandlerFunc{
 			"POST":   {},
-			"READ":   {},
+			"GET":    {},
 			"PUT":    {},
 			"DELETE": {},
 		})

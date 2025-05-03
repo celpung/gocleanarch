@@ -3,9 +3,9 @@ package middlewares
 import (
 	"errors"
 	"net/http"
-	"os"
 	"strings"
 
+	"github.com/celpung/gocleanarch/configs/environment"
 	"github.com/celpung/gocleanarch/configs/role"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
@@ -34,7 +34,7 @@ func JWTMiddleware(requiredRole role.Role) gin.HandlerFunc {
 			}
 
 			// Return the secret key used to sign the token
-			return []byte(os.Getenv("JWT_TOKEN")), nil
+			return []byte(environment.Env.JWT_SECRET), nil
 		})
 
 		if err != nil {

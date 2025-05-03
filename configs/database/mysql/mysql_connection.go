@@ -3,8 +3,8 @@ package mysql_configs
 import (
 	"database/sql"
 	"fmt"
-	"os"
 
+	"github.com/celpung/gocleanarch/configs/environment"
 	"github.com/celpung/gocleanarch/entity"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -13,11 +13,11 @@ import (
 var DB *gorm.DB
 
 func CreateDatabaseIfNotExists() error {
-	dbUser := os.Getenv("DB_USERNAME")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbName := os.Getenv("DB_NAME")
+	dbUser := environment.Env.DB_USERNAME
+	dbPassword := environment.Env.DB_PASSWORD
+	dbHost := environment.Env.DB_HOST
+	dbPort := environment.Env.DB_PORT
+	dbName := environment.Env.DB_NAME
 
 	// Connect to MySQL server without specifying a database
 	dsnWithoutDB := fmt.Sprintf("%s:%s@tcp(%s:%s)/?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPassword, dbHost, dbPort)
@@ -44,11 +44,11 @@ func CreateDatabaseIfNotExists() error {
 }
 
 func ConnectDatabase() {
-	dbUser := os.Getenv("DB_USERNAME")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbName := os.Getenv("DB_NAME")
+	dbUser := environment.Env.DB_USERNAME
+	dbPassword := environment.Env.DB_PASSWORD
+	dbHost := environment.Env.DB_HOST
+	dbPort := environment.Env.DB_PORT
+	dbName := environment.Env.DB_NAME
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPassword, dbHost, dbPort, dbName)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})

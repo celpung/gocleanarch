@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"os"
 	"strings"
 
+	"github.com/celpung/gocleanarch/configs/environment"
 	"github.com/celpung/gocleanarch/configs/role"
 	"github.com/golang-jwt/jwt"
 )
@@ -30,7 +30,7 @@ func JWTMiddleware(requiredRole role.Role, next http.HandlerFunc) http.HandlerFu
 			}
 
 			// Return the secret key used to sign the token
-			return []byte(os.Getenv("JWT_TOKEN")), nil
+			return []byte(environment.Env.JWT_SECRET), nil
 		})
 
 		if err != nil {
