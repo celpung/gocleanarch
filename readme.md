@@ -4,30 +4,32 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/celpung/gocleanarch)](https://goreportcard.com/report/github.com/celpung/gocleanarch)
 [![GoDoc](https://godoc.org/github.com/celpung/gocleanarch?status.svg)](https://godoc.org/github.com/celpung/gocleanarch)
 
-## Introduction
+> **Version:** `v2.1.0`
 
-Clean Architecture is a software design philosophy that aims to create maintainable, scalable, and testable code by separating concerns into distinct layers. This project serves as an example of implementing Clean Architecture in a GoLang application, demonstrating the organization of code for improved readability and maintainability.
+## 📚 Introduction
 
-## Getting Started
+**GoCleanArch** is a reference implementation of the **Clean Architecture** pattern in a Go (Golang) application. The project is structured to emphasize **separation of concerns**, **testability**, and **scalability**. By organizing the application into distinct layers, it promotes maintainable and readable codebases—especially useful for medium to large-scale systems.
 
-Follow these instructions to set up the project on your local machine.
+## 🚀 Getting Started
 
-### Prerequisites
+These instructions will help you set up and run the project locally for development and testing purposes.
 
-Ensure you have the following installed:
+### ✅ Prerequisites
 
-- go 1.xx.x
+Make sure you have the following installed on your system:
 
-### Installation
+- [Go](https://golang.org/dl/) version `1.12.x` or higher
 
-Clone the repository and install the dependencies:
+### 📦 Installation
+
+To get started, clone the repository and install the required dependencies:
 
 ```bash
 # Clone the repository
 git clone https://github.com/celpung/gocleanarch.git
 
-# Change to the project directory
+# Navigate into the project directory
 cd gocleanarch
 
-# Install dependencies
+# Download and tidy up the dependencies
 go mod tidy
