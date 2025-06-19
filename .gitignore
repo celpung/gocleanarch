@@ -2,3 +2,4 @@
 .env
 files/
 images/
+.DS_Store

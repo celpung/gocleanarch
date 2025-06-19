@@ -10,6 +10,84 @@
 
 **GoCleanArch** is a reference implementation of the **Clean Architecture** pattern in a Go (Golang) application. The project is structured to emphasize **separation of concerns**, **testability**, and **scalability**. By organizing the application into distinct layers, it promotes maintainable and readable codebases—especially useful for medium to large-scale systems.
 
+## 📂 Project Structure
+
+```bash
+gocleanarch
+├── cmd
+│   ├── gin
+│   │   └── main.go
+│   └── http
+│       └── main.go
+├── configs
+│   ├── database
+│   │   ├── mysql
+│   │   │   └── mysql_connection.go
+│   │   └── sqlite
+│   │       └── sqlite_conntection.go
+│   ├── environment
+│   │   └── environment.go
+│   └── role
+│       └── user_role.go
+├── delivery
+│   ├── gin
+│   │   └── user_delivery
+│   │       ├── dto
+│   │       │   └── user_dto.go
+│   │       ├── implementation
+│   │       │   └── user_delivery_implementation.go
+│   │       ├── middleware
+│   │       │   └── user_middleware.go
+│   │       ├── router
+│   │       │   └── user_router.go
+│   │       └── user_delivery_interface.go
+│   └── http
+│       └── user_delivery
+│           ├── implementation
+│           │   └── user_delivery_implementation.go
+│           ├── middleware
+│           │   └── user_middleware.go
+│           ├── router
+│           │   └── user_router.go
+│           └── user_delivery_interface.go
+├── Dockerfile
+├── domain
+│   ├── slider
+│   │   └── entity
+│   │       └── slider_entity.go
+│   └── user
+│       ├── entity
+│       │   └── user_entity.go
+│       ├── repository
+│       │   ├── implementation
+│       │   │   ├── test
+│       │   │   │   └── user_repository_implementation_test.go
+│       │   │   └── user_repository_implementation.go
+│       │   ├── model
+│       │   │   └── user_model.go
+│       │   └── user_repository_interface.go
+│       └── usecase
+│           ├── implementation
+│           │   └── user_usecase_implementation.go
+│           └── user_usecase_interface.go
+├── go.mod
+├── go.sum
+├── helper
+│   └── ImageChecker.go
+├── public
+│   ├── images
+│   │   └── sample.jpg
+│   └── index.html
+├── readme.md
+├── services
+│   ├── jwt
+│   │   └── jwt_generator.go
+│   └── password
+│       └── bcrypt_generator.go
+└── utils
+    └── request_method_check.go
+```
+
 ## 🚀 Getting Started
 
 These instructions will help you set up and run the project locally for development and testing purposes.

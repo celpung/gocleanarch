@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	user_delivery "github.com/celpung/gocleanarch/domain/user/delivery/http"
+	"github.com/celpung/gocleanarch/delivery/http/user_delivery"
 	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 	user_usecase "github.com/celpung/gocleanarch/domain/user/usecase"
 	"github.com/celpung/gocleanarch/utils"

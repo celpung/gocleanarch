@@ -8,16 +8,10 @@ import (
 
 	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
 	"github.com/celpung/gocleanarch/configs/environment"
-	user_router "github.com/celpung/gocleanarch/domain/user/delivery/http/router"
-	"github.com/joho/godotenv"
+	user_router "github.com/celpung/gocleanarch/delivery/http/user_delivery/router"
 )
 
 func main() {
-	// Load .env
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env", err)
-	}
-
 	// Connect to the database and auto migrate
 	mysql_configs.CreateDatabaseIfNotExists()
 	mysql_configs.ConnectDatabase()

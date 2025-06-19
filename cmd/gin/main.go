@@ -2,26 +2,19 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 	"time"
 
 	crud_router "github.com/celpung/go-generic-crud/crud_router"
 	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
 	"github.com/celpung/gocleanarch/configs/environment"
+	user_router "github.com/celpung/gocleanarch/delivery/gin/user_delivery/router"
 	slider_entity "github.com/celpung/gocleanarch/domain/slider/entity"
-	user_router "github.com/celpung/gocleanarch/domain/user/delivery/gin/router"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	// load .env
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, using environment variables from system")
-	}
-
 	// Connect to the database and auto migrate
 	mysql_configs.CreateDatabaseIfNotExists()
 	mysql_configs.ConnectDatabase()

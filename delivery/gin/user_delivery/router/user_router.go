@@ -3,8 +3,8 @@ package user_router
 import (
 	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
 	"github.com/celpung/gocleanarch/configs/role"
-	user_delivery_implementation "github.com/celpung/gocleanarch/domain/user/delivery/gin/implementation"
-	user_middleware "github.com/celpung/gocleanarch/domain/user/delivery/gin/middleware"
+	user_delivery_implementation "github.com/celpung/gocleanarch/delivery/gin/user_delivery/implementation"
+	user_middleware "github.com/celpung/gocleanarch/delivery/gin/user_delivery/middleware"
 	user_repository_implementation "github.com/celpung/gocleanarch/domain/user/repository/implementation"
 	user_usecase_implementation "github.com/celpung/gocleanarch/domain/user/usecase/implementation"
 	jwt_services "github.com/celpung/gocleanarch/services/jwt"
