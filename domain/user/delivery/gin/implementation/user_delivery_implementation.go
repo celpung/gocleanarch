@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	user_delivery "github.com/celpung/gocleanarch/domain/user/delivery/gin"
-	"github.com/celpung/gocleanarch/domain/user/entity"
+	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 	user_usecase "github.com/celpung/gocleanarch/domain/user/usecase"
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +17,7 @@ type UserDeliveryStruct struct {
 // Register implements user_delivery.UserDeliveryInterface.
 func (d *UserDeliveryStruct) Register(c *gin.Context) {
 	// get user input data
-	var reg entity.User
+	var reg user_entity.User
 	if err := c.ShouldBindJSON(&reg); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -105,7 +105,7 @@ func (d *UserDeliveryStruct) GetAllUserData(c *gin.Context) {
 }
 
 func (d *UserDeliveryStruct) UpdateUser(c *gin.Context) {
-	var updateData entity.UserUpdate
+	var updateData user_entity.UserUpdate
 	if err := c.ShouldBindJSON(&updateData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,

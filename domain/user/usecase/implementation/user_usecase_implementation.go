@@ -6,7 +6,7 @@ import (
 
 	user_repository "github.com/celpung/gocleanarch/domain/user/repository"
 	user_usecase "github.com/celpung/gocleanarch/domain/user/usecase"
-	"github.com/celpung/gocleanarch/domain/user/entity"
+	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 	jwt_services "github.com/celpung/gocleanarch/services/jwt"
 	password_services "github.com/celpung/gocleanarch/services/password"
 )
@@ -18,7 +18,7 @@ type UserUsecaseStruct struct {
 }
 
 // Create implements user_usecase.UserUsecaseInterface.
-func (u *UserUsecaseStruct) Create(user *entity.User) (*entity.UserHttpResponse, error) {
+func (u *UserUsecaseStruct) Create(user *user_entity.User) (*user_entity.UserHttpResponse, error) {
 	// hashing password
 	hashedPassword, err := u.PasswordService.HashPassword(user.Password)
 	if err != nil {
@@ -34,7 +34,7 @@ func (u *UserUsecaseStruct) Create(user *entity.User) (*entity.UserHttpResponse,
 		return nil, userErr
 	}
 
-	userResponse := &entity.UserHttpResponse{
+	userResponse := &user_entity.UserHttpResponse{
 		ID:     user.ID,
 		Name:   user.Name,
 		Email:  user.Email,
@@ -52,16 +52,16 @@ func (u *UserUsecaseStruct) Delete(userID uint) error {
 }
 
 // Read implements user_usecase.UserUsecaseInterface.
-func (u *UserUsecaseStruct) Read() ([]*entity.UserHttpResponse, error) {
+func (u *UserUsecaseStruct) Read() ([]*user_entity.UserHttpResponse, error) {
 	// perform read all user
 	user, err := u.UserRepository.Read()
 	if err != nil {
 		return nil, err
 	}
 
-	var userResponse []*entity.UserHttpResponse
+	var userResponse []*user_entity.UserHttpResponse
 	for _, v := range user {
-		userResponse = append(userResponse, &entity.UserHttpResponse{
+		userResponse = append(userResponse, &user_entity.UserHttpResponse{
 			ID:     v.ID,
 			Name:   v.Name,
 			Email:  v.Email,
@@ -75,14 +75,14 @@ func (u *UserUsecaseStruct) Read() ([]*entity.UserHttpResponse, error) {
 }
 
 // ReadByID implements user_usecase.UserUsecaseInterface.
-func (u *UserUsecaseStruct) ReadByID(userID uint) (*entity.UserHttpResponse, error) {
+func (u *UserUsecaseStruct) ReadByID(userID uint) (*user_entity.UserHttpResponse, error) {
 	// perform read user by id
 	user, userErr := u.UserRepository.ReadByID(userID)
 	if userErr != nil {
 		return nil, userErr
 	}
 
-	userResponse := &entity.UserHttpResponse{
+	userResponse := &user_entity.UserHttpResponse{
 		ID:     user.ID,
 		Name:   user.Name,
 		Email:  user.Email,
@@ -94,7 +94,7 @@ func (u *UserUsecaseStruct) ReadByID(userID uint) (*entity.UserHttpResponse, err
 }
 
 // Update implements user_usecase.UserUsecaseInterface.
-func (u *UserUsecaseStruct) Update(user *entity.UserUpdate) (*entity.UserHttpResponse, error) {
+func (u *UserUsecaseStruct) Update(user *user_entity.UserUpdate) (*user_entity.UserHttpResponse, error) {
 	existingUser, err := u.UserRepository.ReadByID(user.ID)
 	if err != nil {
 		return nil, err
@@ -127,7 +127,7 @@ func (u *UserUsecaseStruct) Update(user *entity.UserUpdate) (*entity.UserHttpRes
 		return nil, err
 	}
 
-	userResponse := &entity.UserHttpResponse{
+	userResponse := &user_entity.UserHttpResponse{
 		ID:     updatedUser.ID,
 		Name:   updatedUser.Name,
 		Email:  updatedUser.Email,

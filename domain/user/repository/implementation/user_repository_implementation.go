@@ -1,7 +1,7 @@
 package user_repository_implementation
 
 import (
-	"github.com/celpung/gocleanarch/domain/user/entity"
+	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 	user_repository "github.com/celpung/gocleanarch/domain/user/repository"
 	"gorm.io/gorm"
 )
@@ -11,7 +11,7 @@ type UserRepositoryStruct struct {
 }
 
 // Create implements user_repository.UserRepositoryInterface.
-func (r *UserRepositoryStruct) Create(user *entity.User) (*entity.User, error) {
+func (r *UserRepositoryStruct) Create(user *user_entity.User) (*user_entity.User, error) {
 	if err := r.DB.Create(user).Error; err != nil {
 		return nil, err
 	}
@@ -20,8 +20,8 @@ func (r *UserRepositoryStruct) Create(user *entity.User) (*entity.User, error) {
 }
 
 // Read implements user_repository.UserRepositoryInterface.
-func (r *UserRepositoryStruct) Read() ([]*entity.User, error) {
-	var users []*entity.User
+func (r *UserRepositoryStruct) Read() ([]*user_entity.User, error) {
+	var users []*user_entity.User
 	if err := r.selectUserData(r.DB).Find(&users).Error; err != nil {
 		return nil, err
 	}
@@ -30,8 +30,8 @@ func (r *UserRepositoryStruct) Read() ([]*entity.User, error) {
 }
 
 // ReadByID implements user_repository.UserRepositoryInterface.
-func (r *UserRepositoryStruct) ReadByID(userID uint) (*entity.User, error) {
-	var user entity.User
+func (r *UserRepositoryStruct) ReadByID(userID uint) (*user_entity.User, error) {
+	var user user_entity.User
 	if err := r.selectUserData(r.DB).First(&user, userID).Error; err != nil {
 		return nil, err
 	}
@@ -40,8 +40,8 @@ func (r *UserRepositoryStruct) ReadByID(userID uint) (*entity.User, error) {
 }
 
 // ReadByEmail implements user_repository.UserRepositoryInterface.
-func (r *UserRepositoryStruct) ReadByEmail(email string, isLogin bool) (*entity.User, error) {
-	var user entity.User
+func (r *UserRepositoryStruct) ReadByEmail(email string, isLogin bool) (*user_entity.User, error) {
+	var user user_entity.User
 	if isLogin {
 		if err := r.DB.Where("email = ?", email).First(&user).Error; err != nil {
 			return nil, err
@@ -56,8 +56,8 @@ func (r *UserRepositoryStruct) ReadByEmail(email string, isLogin bool) (*entity.
 }
 
 // Update implements user_repository.UserRepositoryInterface.
-func (r *UserRepositoryStruct) Update(user *entity.User) (*entity.User, error) {
-	if err := r.DB.Model(&entity.User{}).Where("id = ?", user.ID).Updates(user).Error; err != nil {
+func (r *UserRepositoryStruct) Update(user *user_entity.User) (*user_entity.User, error) {
+	if err := r.DB.Model(&user_entity.User{}).Where("id = ?", user.ID).Updates(user).Error; err != nil {
 		return nil, err
 	}
 	return user, nil
@@ -65,7 +65,7 @@ func (r *UserRepositoryStruct) Update(user *entity.User) (*entity.User, error) {
 
 // Delete implements user_repository.UserRepositoryInterface.
 func (r *UserRepositoryStruct) Delete(userID uint) error {
-	if err := r.DB.Delete(&entity.User{}, userID).Error; err != nil {
+	if err := r.DB.Delete(&user_entity.User{}, userID).Error; err != nil {
 		return err
 	}
 	return nil

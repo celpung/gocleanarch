@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	user_delivery "github.com/celpung/gocleanarch/domain/user/delivery/http"
-	"github.com/celpung/gocleanarch/domain/user/entity"
+	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 	user_usecase "github.com/celpung/gocleanarch/domain/user/usecase"
 	"github.com/celpung/gocleanarch/utils"
 )
@@ -20,7 +20,7 @@ func (d *UserDeliveryStruct) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var reg entity.User
+	var reg user_entity.User
 	if err := json.NewDecoder(r.Body).Decode(&reg); err != nil {
 		http.Error(w, "Failed binding json data: "+err.Error(), http.StatusBadRequest)
 		return
@@ -96,7 +96,7 @@ func (d *UserDeliveryStruct) UpdateUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var updateData *entity.UserUpdate
+	var updateData *user_entity.UserUpdate
 	if err := json.NewDecoder(r.Body).Decode(&updateData); err != nil {
 		http.Error(w, "Failed to bind update data: "+err.Error(), http.StatusBadRequest)
 		return

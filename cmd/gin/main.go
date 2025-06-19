@@ -9,8 +9,8 @@ import (
 	crud_router "github.com/celpung/go-generic-crud/crud_router"
 	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
 	"github.com/celpung/gocleanarch/configs/environment"
+	slider_entity "github.com/celpung/gocleanarch/domain/slider/entity"
 	user_router "github.com/celpung/gocleanarch/domain/user/delivery/gin/router"
-	"github.com/celpung/gocleanarch/global_entity"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -55,10 +55,10 @@ func main() {
 	api := r.Group("/api")
 	user_router.Router(api)
 
-	crud_router.SetupRouter[global_entity.Slider](
+	crud_router.SetupRouter[slider_entity.Slider](
 		api,
 		mysql_configs.DB,
-		reflect.TypeOf(global_entity.Slider{}),
+		reflect.TypeOf(slider_entity.Slider{}),
 		"/sliders",
 		map[string][]gin.HandlerFunc{
 			"POST":   {},

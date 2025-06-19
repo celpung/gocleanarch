@@ -1,4 +1,4 @@
-package global_entity
+package slider_entity
 
 import "time"
 

@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/celpung/gocleanarch/configs/environment"
-	"github.com/celpung/gocleanarch/domain/user/entity"
-	"github.com/celpung/gocleanarch/global_entity"
+	slider_entity "github.com/celpung/gocleanarch/domain/slider/entity"
+	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -63,8 +63,8 @@ func ConnectDatabase() {
 func AutoMigrage() {
 	ConnectDatabase()
 	if migrateErr := DB.AutoMigrate(
-		&entity.User{},
-		&global_entity.Slider{},
+		&user_entity.User{},
+		&slider_entity.Slider{},
 	); migrateErr != nil {
 		panic(migrateErr)
 	}

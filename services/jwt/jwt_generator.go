@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/celpung/gocleanarch/configs/environment"
-	"github.com/celpung/gocleanarch/domain/user/entity"
+	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 	"github.com/golang-jwt/jwt/v4"
 )
 
@@ -14,7 +14,7 @@ func NewJwtService() *JwtService {
 	return &JwtService{}
 }
 
-func (js *JwtService) JWTGenerator(user entity.User) (string, error) {
+func (js *JwtService) JWTGenerator(user user_entity.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email": user.Email,
 		"id":    user.ID,
