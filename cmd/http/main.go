@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
-	"github.com/celpung/gocleanarch/configs/environment"
 	user_router "github.com/celpung/gocleanarch/delivery/http/user_delivery/router"
+	mysql_configs "github.com/celpung/gocleanarch/infrastructure/db/mysql"
+	"github.com/celpung/gocleanarch/infrastructure/environment"
 )
 
 func main() {

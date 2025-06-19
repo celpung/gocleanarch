@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/celpung/gocleanarch/configs/environment"
 	slider_entity "github.com/celpung/gocleanarch/domain/slider/entity"
 	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
+	"github.com/celpung/gocleanarch/infrastructure/environment"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )

@@ -3,27 +3,26 @@ package user_router
 import (
 	"net/http"
 
-	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
-	"github.com/celpung/gocleanarch/configs/role"
+	user_repository_implementation "github.com/celpung/gocleanarch/application/user/repository"
+	user_usecase_implementation "github.com/celpung/gocleanarch/application/user/usecase"
 	user_delivery_implementation "github.com/celpung/gocleanarch/delivery/http/user_delivery/implementation"
 	middlewares "github.com/celpung/gocleanarch/delivery/http/user_delivery/middleware"
-	user_repository_implementation "github.com/celpung/gocleanarch/domain/user/repository/implementation"
-	user_usecase_implementation "github.com/celpung/gocleanarch/domain/user/usecase/implementation"
-	"github.com/celpung/gocleanarch/services"
-	"github.com/celpung/gocleanarch/utils"
+	"github.com/celpung/gocleanarch/infrastructure/auths"
+	mysql_configs "github.com/celpung/gocleanarch/infrastructure/db/mysql"
+	"github.com/celpung/gocleanarch/infrastructure/role"
 )
 
 func Router() {
-	passwordService := services.NewPasswordService()
-	jwtService := services.NewJwtService()
+	passwordService := auths.NewPasswordService()
+	jwtService := auths.NewJwtService()
 
 	repository := user_repository_implementation.NewUserRepository(mysql_configs.DB)
 	usecase := user_usecase_implementation.NewUserUsecase(repository, passwordService, jwtService)
 	delivery := user_delivery_implementation.NewUserDelivery(usecase)
 
-	http.HandleFunc("/users/register", utils.MethodHandler(http.MethodPost, delivery.Register))
-	http.HandleFunc("/users/login", utils.MethodHandler(http.MethodPost, delivery.Login))
-	http.HandleFunc("/users", utils.MethodHandler(http.MethodGet, middlewares.AuthMiddleware(role.Admin, delivery.GetAllUserData)))
-	http.HandleFunc("/users/update", utils.MethodHandler(http.MethodPatch, middlewares.AuthMiddleware(role.User, delivery.UpdateUser)))
-	http.HandleFunc("/users/delete", utils.MethodHandler(http.MethodDelete, middlewares.AuthMiddleware(role.Admin, delivery.DeleteUser)))
+	http.HandleFunc("/users/register", middlewares.MethodHandler(http.MethodPost, delivery.Register))
+	http.HandleFunc("/users/login", middlewares.MethodHandler(http.MethodPost, delivery.Login))
+	http.HandleFunc("/users", middlewares.MethodHandler(http.MethodGet, middlewares.AuthMiddleware(role.Admin, delivery.GetAllUserData)))
+	http.HandleFunc("/users/update", middlewares.MethodHandler(http.MethodPatch, middlewares.AuthMiddleware(role.User, delivery.UpdateUser)))
+	http.HandleFunc("/users/delete", middlewares.MethodHandler(http.MethodDelete, middlewares.AuthMiddleware(role.Admin, delivery.DeleteUser)))
 }

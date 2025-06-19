@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/celpung/gocleanarch/configs/environment"
-	"github.com/celpung/gocleanarch/configs/role"
+	"github.com/celpung/gocleanarch/infrastructure/environment"
+	"github.com/celpung/gocleanarch/infrastructure/role"
 	"github.com/golang-jwt/jwt/v4"
 )
 

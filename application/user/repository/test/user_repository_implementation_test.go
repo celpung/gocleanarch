@@ -3,9 +3,9 @@ package user_repository_implementation_test
 import (
 	"testing"
 
-	sqlite_configs "github.com/celpung/gocleanarch/configs/database/sqlite"
+	user_repository_implementation "github.com/celpung/gocleanarch/application/user/repository"
 	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
-	user_repository_implementation "github.com/celpung/gocleanarch/domain/user/repository/implementation"
+	sqlite_configs "github.com/celpung/gocleanarch/infrastructure/db/sqlite"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )

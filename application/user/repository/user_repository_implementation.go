@@ -3,7 +3,7 @@ package user_repository_implementation
 import (
 	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 	user_repository "github.com/celpung/gocleanarch/domain/user/repository"
-	user_model "github.com/celpung/gocleanarch/domain/user/repository/model"
+	user_model "github.com/celpung/gocleanarch/infrastructure/db/model"
 	"gorm.io/gorm"
 )
 

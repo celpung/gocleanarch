@@ -6,10 +6,10 @@ import (
 	"time"
 
 	crud_router "github.com/celpung/go-generic-crud/crud_router"
-	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
-	"github.com/celpung/gocleanarch/configs/environment"
 	user_router "github.com/celpung/gocleanarch/delivery/gin/user_delivery/router"
 	slider_entity "github.com/celpung/gocleanarch/domain/slider/entity"
+	mysql_configs "github.com/celpung/gocleanarch/infrastructure/db/mysql"
+	"github.com/celpung/gocleanarch/infrastructure/environment"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )

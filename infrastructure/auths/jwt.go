@@ -1,10 +1,10 @@
-package services
+package auths
 
 import (
 	"time"
 
-	"github.com/celpung/gocleanarch/configs/environment"
 	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
+	"github.com/celpung/gocleanarch/infrastructure/environment"
 	"github.com/golang-jwt/jwt/v4"
 )
 

@@ -6,13 +6,13 @@ import (
 	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 	user_repository "github.com/celpung/gocleanarch/domain/user/repository"
 	user_usecase "github.com/celpung/gocleanarch/domain/user/usecase"
-	"github.com/celpung/gocleanarch/services"
+	"github.com/celpung/gocleanarch/infrastructure/auths"
 )
 
 type UserUsecaseStruct struct {
 	UserRepository  user_repository.UserRepositoryInterface
-	PasswordService *services.PasswordService
-	JWTService      *services.JwtService
+	PasswordService *auths.PasswordService
+	JWTService      *auths.JwtService
 }
 
 // Create implements user_usecase.UserUsecaseInterface.
@@ -127,7 +127,7 @@ func (u *UserUsecaseStruct) Login(email, password string) (string, error) {
 	return token, nil
 }
 
-func NewUserUsecase(repository user_repository.UserRepositoryInterface, passwordServive *services.PasswordService, jwtService *services.JwtService) user_usecase.UserUsecaseInterface {
+func NewUserUsecase(repository user_repository.UserRepositoryInterface, passwordServive *auths.PasswordService, jwtService *auths.JwtService) user_usecase.UserUsecaseInterface {
 	return &UserUsecaseStruct{
 		UserRepository:  repository,
 		PasswordService: passwordServive,
