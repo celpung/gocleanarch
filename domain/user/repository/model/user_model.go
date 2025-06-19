@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserModel struct {
+type User struct {
 	ID        uint `gorm:"primaryKey"`
 	Name      string
 	Email     string         `gorm:"unique"`
@@ -19,8 +19,8 @@ type UserModel struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
-func ToModel(e *user_entity.User) *UserModel {
-	return &UserModel{
+func ToModel(e *user_entity.User) *User {
+	return &User{
 		ID:        e.ID,
 		Name:      e.Name,
 		Email:     e.Email,
@@ -33,7 +33,7 @@ func ToModel(e *user_entity.User) *UserModel {
 	}
 }
 
-func ToEntity(m *UserModel) *user_entity.User {
+func ToEntity(m *User) *user_entity.User {
 	var deletedAt *time.Time
 	if m.DeletedAt.Valid {
 		deletedAt = &m.DeletedAt.Time
@@ -51,7 +51,7 @@ func ToEntity(m *UserModel) *user_entity.User {
 	}
 }
 
-func ToEntityList(models []*UserModel) []*user_entity.User {
+func ToEntityList(models []*User) []*user_entity.User {
 	entities := make([]*user_entity.User, 0, len(models))
 	for _, m := range models {
 		entities = append(entities, ToEntity(m))
@@ -59,8 +59,8 @@ func ToEntityList(models []*UserModel) []*user_entity.User {
 	return entities
 }
 
-func ToModelList(entities []*user_entity.User) []*UserModel {
-	models := make([]*UserModel, 0, len(entities))
+func ToModelList(entities []*user_entity.User) []*User {
+	models := make([]*User, 0, len(entities))
 	for _, e := range entities {
 		models = append(models, ToModel(e))
 	}

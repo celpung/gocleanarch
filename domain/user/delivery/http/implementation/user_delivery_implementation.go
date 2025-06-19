@@ -96,7 +96,7 @@ func (d *UserDeliveryStruct) UpdateUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var updateData *user_entity.UserUpdate
+	var updateData *user_entity.User
 	if err := json.NewDecoder(r.Body).Decode(&updateData); err != nil {
 		http.Error(w, "Failed to bind update data: "+err.Error(), http.StatusBadRequest)
 		return

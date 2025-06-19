@@ -18,7 +18,7 @@ type UserUsecaseStruct struct {
 }
 
 // Create implements user_usecase.UserUsecaseInterface.
-func (u *UserUsecaseStruct) Create(user *user_entity.User) (*user_entity.UserHttpResponse, error) {
+func (u *UserUsecaseStruct) Create(user *user_entity.User) (*user_entity.User, error) {
 	// hashing password
 	hashedPassword, err := u.PasswordService.HashPassword(user.Password)
 	if err != nil {
@@ -34,67 +34,33 @@ func (u *UserUsecaseStruct) Create(user *user_entity.User) (*user_entity.UserHtt
 		return nil, userErr
 	}
 
-	userResponse := &user_entity.UserHttpResponse{
-		ID:     user.ID,
-		Name:   user.Name,
-		Email:  user.Email,
-		Active: user.Active,
-		Role:   user.Role,
-	}
-
-	return userResponse, nil
-}
-
-// Delete implements user_usecase.UserUsecaseInterface.
-func (u *UserUsecaseStruct) Delete(userID uint) error {
-	// perform delete user
-	return u.UserRepository.SoftDelete(userID)
+	return user, nil
 }
 
 // Read implements user_usecase.UserUsecaseInterface.
-func (u *UserUsecaseStruct) Read() ([]*user_entity.UserHttpResponse, error) {
+func (u *UserUsecaseStruct) Read() ([]*user_entity.User, error) {
 	// perform read all user
 	user, err := u.UserRepository.Read()
 	if err != nil {
 		return nil, err
 	}
 
-	var userResponse []*user_entity.UserHttpResponse
-	for _, v := range user {
-		userResponse = append(userResponse, &user_entity.UserHttpResponse{
-			ID:     v.ID,
-			Name:   v.Name,
-			Email:  v.Email,
-			Active: v.Active,
-			Role:   v.Role,
-		})
-	}
-	return userResponse, nil
-
-	// return u.UserRepository.Read()
+	return user, nil
 }
 
 // ReadByID implements user_usecase.UserUsecaseInterface.
-func (u *UserUsecaseStruct) ReadByID(userID uint) (*user_entity.UserHttpResponse, error) {
+func (u *UserUsecaseStruct) ReadByID(userID uint) (*user_entity.User, error) {
 	// perform read user by id
 	user, userErr := u.UserRepository.ReadByID(userID)
 	if userErr != nil {
 		return nil, userErr
 	}
 
-	userResponse := &user_entity.UserHttpResponse{
-		ID:     user.ID,
-		Name:   user.Name,
-		Email:  user.Email,
-		Active: user.Active,
-		Role:   user.Role,
-	}
-
-	return userResponse, nil
+	return user, nil
 }
 
 // Update implements user_usecase.UserUsecaseInterface.
-func (u *UserUsecaseStruct) Update(user *user_entity.UserUpdate) (*user_entity.UserHttpResponse, error) {
+func (u *UserUsecaseStruct) Update(user *user_entity.User) (*user_entity.User, error) {
 	existingUser, err := u.UserRepository.ReadByID(user.ID)
 	if err != nil {
 		return nil, err
@@ -127,15 +93,13 @@ func (u *UserUsecaseStruct) Update(user *user_entity.UserUpdate) (*user_entity.U
 		return nil, err
 	}
 
-	userResponse := &user_entity.UserHttpResponse{
-		ID:     updatedUser.ID,
-		Name:   updatedUser.Name,
-		Email:  updatedUser.Email,
-		Active: updatedUser.Active,
-		Role:   updatedUser.Role,
-	}
+	return updatedUser, nil
+}
 
-	return userResponse, nil
+// Delete implements user_usecase.UserUsecaseInterface.
+func (u *UserUsecaseStruct) SoftDelete(userID uint) error {
+	// perform soft delete user
+	return u.UserRepository.SoftDelete(userID)
 }
 
 // Login implements user_usecase.UserUsecaseInterface.

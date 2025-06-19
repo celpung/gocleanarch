@@ -13,8 +13,8 @@ type UserRepositoryStruct struct {
 
 // Create implements user_repository.UserRepositoryInterface.
 func (r *UserRepositoryStruct) Create(user *user_entity.User) (*user_entity.User, error) {
-	userModel := user_model.ToModel(user)
-	if err := r.DB.Create(userModel).Error; err != nil {
+	User := user_model.ToModel(user)
+	if err := r.DB.Create(User).Error; err != nil {
 		return nil, err
 	}
 
@@ -23,7 +23,7 @@ func (r *UserRepositoryStruct) Create(user *user_entity.User) (*user_entity.User
 
 // Read implements user_repository.UserRepositoryInterface.
 func (r *UserRepositoryStruct) Read() ([]*user_entity.User, error) {
-	var users []*user_model.UserModel
+	var users []*user_model.User
 	if err := r.selectUserData(r.DB).Find(&users).Error; err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (r *UserRepositoryStruct) Read() ([]*user_entity.User, error) {
 
 // ReadByID implements user_repository.UserRepositoryInterface.
 func (r *UserRepositoryStruct) ReadByID(userID uint) (*user_entity.User, error) {
-	var user user_model.UserModel
+	var user user_model.User
 	if err := r.selectUserData(r.DB).First(&user, userID).Error; err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (r *UserRepositoryStruct) ReadByID(userID uint) (*user_entity.User, error) 
 
 // ReadByEmail implements user_repository.UserRepositoryInterface.
 func (r *UserRepositoryStruct) ReadByEmail(email string, isLogin bool) (*user_entity.User, error) {
-	var user user_model.UserModel
+	var user user_model.User
 	if isLogin {
 		if err := r.DB.Where("email = ?", email).First(&user).Error; err != nil {
 			return nil, err
@@ -59,16 +59,16 @@ func (r *UserRepositoryStruct) ReadByEmail(email string, isLogin bool) (*user_en
 
 // Update implements user_repository.UserRepositoryInterface.
 func (r *UserRepositoryStruct) Update(user *user_entity.User) (*user_entity.User, error) {
-	userModel := user_model.ToModel(user)
-	if err := r.DB.Model(&user_model.UserModel{}).Where("id = ?", user.ID).Updates(userModel).Error; err != nil {
+	User := user_model.ToModel(user)
+	if err := r.DB.Model(&user_model.User{}).Where("id = ?", user.ID).Updates(User).Error; err != nil {
 		return nil, err
 	}
-	return user_model.ToEntity(userModel), nil
+	return user_model.ToEntity(User), nil
 }
 
 // Delete implements user_repository.UserRepositoryInterface.
 func (r *UserRepositoryStruct) SoftDelete(userID uint) error {
-	if err := r.DB.Delete(&user_model.UserModel{}, userID).Error; err != nil {
+	if err := r.DB.Delete(&user_model.User{}, userID).Error; err != nil {
 		return err
 	}
 	return nil

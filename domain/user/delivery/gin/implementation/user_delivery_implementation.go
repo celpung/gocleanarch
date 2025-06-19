@@ -3,9 +3,10 @@ package user_delivery_implementation
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
+	user_dto "github.com/celpung/gocleanarch/domain/user/delivery/dto"
 	user_delivery "github.com/celpung/gocleanarch/domain/user/delivery/gin"
-	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 	user_usecase "github.com/celpung/gocleanarch/domain/user/usecase"
 	"github.com/gin-gonic/gin"
 )
@@ -14,23 +15,22 @@ type UserDeliveryStruct struct {
 	UserUsecase user_usecase.UserUsecaseInterface
 }
 
-// Register implements user_delivery.UserDeliveryInterface.
 func (d *UserDeliveryStruct) Register(c *gin.Context) {
-	// get user input data
-	var reg user_entity.User
-	if err := c.ShouldBindJSON(&reg); err != nil {
+	var req user_dto.UserCreateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"message": "Failed binding json data",
+			"message": "Invalid input data",
 			"error":   err.Error(),
 		})
 		return
 	}
 
-	// perform registration
-	user, err := d.UserUsecase.Create(&reg)
+	userEntity := user_dto.UserCreateRequestDTO(&req)
+
+	user, err := d.UserUsecase.Create(userEntity)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"message": "Failed to create user",
 			"error":   err.Error(),
@@ -41,7 +41,7 @@ func (d *UserDeliveryStruct) Register(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Register success!",
-		"user":    user,
+		"user":    user_dto.UserResponseDTO(user),
 	})
 }
 
@@ -100,24 +100,26 @@ func (d *UserDeliveryStruct) GetAllUserData(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Success fetch user data!",
-		"user":    user,
+		"user":    user_dto.UserResponseListDTO(user),
 	})
 }
 
 func (d *UserDeliveryStruct) UpdateUser(c *gin.Context) {
-	var updateData user_entity.UserUpdate
-	if err := c.ShouldBindJSON(&updateData); err != nil {
+	var req user_dto.UserUpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"message": "Failed to bind data!",
+			"message": "Failed to bind update data!",
 			"error":   err.Error(),
 		})
 		return
 	}
 
-	user, err := d.UserUsecase.Update(&updateData)
+	userEntity := user_dto.UserUpdateRequestDTO(&req)
+
+	user, err := d.UserUsecase.Update(userEntity)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"message": "Failed to update data!",
 			"error":   err.Error(),
@@ -127,8 +129,36 @@ func (d *UserDeliveryStruct) UpdateUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"message": "Success fetch user data!",
-		"user":    user,
+		"message": "User updated successfully!",
+		"user":    user_dto.UserResponseDTO(user),
+	})
+}
+
+// DeleteUser implements user_delivery.UserDeliveryInterface.
+func (d *UserDeliveryStruct) DeleteUser(c *gin.Context) {
+	userIDStr := c.Param("user_id")
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Invalid user ID",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if err := d.UserUsecase.SoftDelete(uint(userID)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to delete user",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "User deleted successfully",
 	})
 }
 
