@@ -2,7 +2,6 @@ package user_usecase_implementation
 
 import (
 	"errors"
-	"fmt"
 
 	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 	user_repository "github.com/celpung/gocleanarch/domain/user/repository"
@@ -110,8 +109,6 @@ func (u *UserUsecaseStruct) Login(email, password string) (string, error) {
 		return "", err
 	}
 
-	fmt.Println(user.Email)
-	fmt.Println(password)
 	// check is user active
 	if !user.Active {
 		return "", errors.New("user not active")

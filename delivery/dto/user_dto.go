@@ -2,6 +2,11 @@ package user_dto
 
 import user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 
+type UserLoginRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=8"`
+}
+
 type UserResponse struct {
 	ID     uint   `json:"id"`
 	Name   string `json:"name"`
