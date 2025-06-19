@@ -1,4 +1,4 @@
-package middlewares
+package user_middleware
 
 import (
 	"errors"
@@ -12,7 +12,7 @@ import (
 )
 
 // JWT middleware function with role-based access control
-func JWTMiddleware(requiredRole role.Role) gin.HandlerFunc {
+func AuthMiddleware(requiredRole role.Role) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := c.GetHeader("Authorization")
 		if tokenString == "" {
