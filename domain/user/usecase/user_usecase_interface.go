@@ -1,6 +1,6 @@
 package user_usecase
 
-import "github.com/celpung/gocleanarch/entity"
+import "github.com/celpung/gocleanarch/domain/user/entity"
 
 type UserUsecaseInterface interface {
 	Create(user *entity.User) (*entity.UserHttpResponse, error)

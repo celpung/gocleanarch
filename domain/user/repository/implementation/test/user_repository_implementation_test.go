@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	sqlite_configs "github.com/celpung/gocleanarch/configs/database/sqlite"
+	"github.com/celpung/gocleanarch/domain/user/entity"
 	user_repository_implementation "github.com/celpung/gocleanarch/domain/user/repository/implementation"
-	"github.com/celpung/gocleanarch/entity"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )

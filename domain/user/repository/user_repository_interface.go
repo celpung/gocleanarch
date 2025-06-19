@@ -1,6 +1,6 @@
 package user_repository
 
-import "github.com/celpung/gocleanarch/entity"
+import "github.com/celpung/gocleanarch/domain/user/entity"
 
 type UserRepositoryInterface interface {
 	Create(user *entity.User) (*entity.User, error)

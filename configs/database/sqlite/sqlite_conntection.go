@@ -3,7 +3,7 @@ package sqlite_configs
 import (
 	"fmt"
 
-	"github.com/celpung/gocleanarch/entity"
+	"github.com/celpung/gocleanarch/domain/user/entity"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )

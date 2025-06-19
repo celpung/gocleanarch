@@ -6,7 +6,7 @@ import (
 
 	user_repository "github.com/celpung/gocleanarch/domain/user/repository"
 	user_usecase "github.com/celpung/gocleanarch/domain/user/usecase"
-	"github.com/celpung/gocleanarch/entity"
+	"github.com/celpung/gocleanarch/domain/user/entity"
 	jwt_services "github.com/celpung/gocleanarch/services/jwt"
 	password_services "github.com/celpung/gocleanarch/services/password"
 )

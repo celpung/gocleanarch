@@ -8,7 +8,7 @@ import (
 
 	"github.com/celpung/gocleanarch/configs/environment"
 	"github.com/celpung/gocleanarch/configs/role"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 // JWTMiddleware function with role-based access control for net/http

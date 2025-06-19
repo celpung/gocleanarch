@@ -1,4 +1,4 @@
-package entity
+package global_entity
 
 import "time"
 

@@ -1,8 +1,8 @@
 package user_repository_implementation
 
 import (
+	"github.com/celpung/gocleanarch/domain/user/entity"
 	user_repository "github.com/celpung/gocleanarch/domain/user/repository"
-	"github.com/celpung/gocleanarch/entity"
 	"gorm.io/gorm"
 )
 

@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	user_delivery "github.com/celpung/gocleanarch/domain/user/delivery/gin"
+	"github.com/celpung/gocleanarch/domain/user/entity"
 	user_usecase "github.com/celpung/gocleanarch/domain/user/usecase"
-	"github.com/celpung/gocleanarch/entity"
 	"github.com/gin-gonic/gin"
 )
 

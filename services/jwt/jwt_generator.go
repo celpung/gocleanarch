@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/celpung/gocleanarch/configs/environment"
-	"github.com/celpung/gocleanarch/entity"
-	"github.com/golang-jwt/jwt"
+	"github.com/celpung/gocleanarch/domain/user/entity"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type JwtService struct{}
