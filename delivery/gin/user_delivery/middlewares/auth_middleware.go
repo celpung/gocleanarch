@@ -1,4 +1,4 @@
-package user_middleware
+package middlewares
 
 import (
 	"errors"

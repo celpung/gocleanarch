@@ -1,4 +1,4 @@
-package jwt_services
+package services
 
 import (
 	"time"

@@ -4,17 +4,16 @@ import (
 	mysql_configs "github.com/celpung/gocleanarch/configs/database/mysql"
 	"github.com/celpung/gocleanarch/configs/role"
 	user_delivery_implementation "github.com/celpung/gocleanarch/delivery/gin/user_delivery/implementation"
-	user_middleware "github.com/celpung/gocleanarch/delivery/gin/user_delivery/middleware"
+	"github.com/celpung/gocleanarch/delivery/gin/user_delivery/middlewares"
 	user_repository_implementation "github.com/celpung/gocleanarch/domain/user/repository/implementation"
 	user_usecase_implementation "github.com/celpung/gocleanarch/domain/user/usecase/implementation"
-	jwt_services "github.com/celpung/gocleanarch/services/jwt"
-	password_services "github.com/celpung/gocleanarch/services/password"
+	"github.com/celpung/gocleanarch/services"
 	"github.com/gin-gonic/gin"
 )
 
 func Router(r *gin.RouterGroup) {
-	passwordService := password_services.NewPasswordService()
-	jwtService := jwt_services.NewJwtService()
+	passwordService := services.NewPasswordService()
+	jwtService := services.NewJwtService()
 
 	repository := user_repository_implementation.NewUserRepository(mysql_configs.DB)
 	usecase := user_usecase_implementation.NewUserUsecase(repository, passwordService, jwtService)
@@ -24,7 +23,7 @@ func Router(r *gin.RouterGroup) {
 	{
 		routes.POST("/register", delivery.Register)
 		routes.POST("/login", delivery.Login)
-		routes.GET("", user_middleware.AuthMiddleware(role.Admin), delivery.GetAllUserData)
-		routes.PATCH("", user_middleware.AuthMiddleware(role.User), delivery.UpdateUser)
+		routes.GET("", middlewares.AuthMiddleware(role.Admin), delivery.GetAllUserData)
+		routes.PATCH("", middlewares.AuthMiddleware(role.User), delivery.UpdateUser)
 	}
 }

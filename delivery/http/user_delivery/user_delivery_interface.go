@@ -7,4 +7,5 @@ type UserDeliveryInterface interface {
 	Login(w http.ResponseWriter, r *http.Request)
 	GetAllUserData(w http.ResponseWriter, r *http.Request)
 	UpdateUser(w http.ResponseWriter, r *http.Request)
+	DeleteUser(w http.ResponseWriter, r *http.Request)
 }

@@ -3,116 +3,127 @@ package user_delivery_implementation
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
+	user_dto "github.com/celpung/gocleanarch/delivery/dto"
 	"github.com/celpung/gocleanarch/delivery/http/user_delivery"
-	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 	user_usecase "github.com/celpung/gocleanarch/domain/user/usecase"
-	"github.com/celpung/gocleanarch/utils"
 )
 
 type UserDeliveryStruct struct {
 	UserUsecase user_usecase.UserUsecaseInterface
 }
 
-// Register implements user_delivery.UserDeliveryInterface.
 func (d *UserDeliveryStruct) Register(w http.ResponseWriter, r *http.Request) {
-	if !utils.RequestMethodCheck(w, r, http.MethodPost) {
+	// Uncomment the following lines if you want to use context values for user ID, email, and role
+	// userID := r.Context().Value(middlewares.ContextKeyUserID)
+	// email := r.Context().Value(middlewares.ContextKeyEmail)
+	// role := r.Context().Value(middlewares.ContextKeyRole)
+	var req user_dto.UserCreateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid input data: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	var reg user_entity.User
-	if err := json.NewDecoder(r.Body).Decode(&reg); err != nil {
-		http.Error(w, "Failed binding json data: "+err.Error(), http.StatusBadRequest)
-		return
-	}
+	entity := user_dto.UserCreateRequestDTO(&req)
 
-	user, err := d.UserUsecase.Create(&reg)
+	user, err := d.UserUsecase.Create(entity)
 	if err != nil {
-		http.Error(w, "Failed to create user: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Failed to create user: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	resp := user_dto.UserResponseDTO(user)
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
 		"message": "Register success!",
-		"user":    user,
+		"user":    resp,
 	})
 }
 
-// Login implements user_delivery.UserDeliveryInterface.
 func (d *UserDeliveryStruct) Login(w http.ResponseWriter, r *http.Request) {
-	if !utils.RequestMethodCheck(w, r, http.MethodPost) {
+	var req user_dto.UserLoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid login data: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	type UserLogin struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
-
-	var login UserLogin
-	if err := json.NewDecoder(r.Body).Decode(&login); err != nil {
-		http.Error(w, "Failed to bind login data: "+err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	token, err := d.UserUsecase.Login(login.Email, login.Password)
+	token, err := d.UserUsecase.Login(req.Email, req.Password)
 	if err != nil {
-		http.Error(w, "Login failed: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Login failed: "+err.Error(), http.StatusUnauthorized)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
 		"message": "Login success",
 		"token":   token,
 	})
 }
 
-// GetAllUserData implements user_delivery.UserDeliveryInterface.
 func (d *UserDeliveryStruct) GetAllUserData(w http.ResponseWriter, r *http.Request) {
-	if !utils.RequestMethodCheck(w, r, http.MethodGet) {
+	users, err := d.UserUsecase.Read()
+	if err != nil {
+		http.Error(w, "Failed to fetch user data: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	user, err := d.UserUsecase.Read()
-	if err != nil {
-		http.Error(w, "Failed to fetch user data: "+err.Error(), http.StatusBadRequest)
-		return
-	}
+	resp := user_dto.UserResponseListDTO(users)
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
 		"message": "Success fetch user data!",
-		"users":   user,
+		"users":   resp,
 	})
 }
 
 func (d *UserDeliveryStruct) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	if !utils.RequestMethodCheck(w, r, http.MethodPatch) {
+	var req user_dto.UserUpdateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid update data: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	var updateData *user_entity.User
-	if err := json.NewDecoder(r.Body).Decode(&updateData); err != nil {
-		http.Error(w, "Failed to bind update data: "+err.Error(), http.StatusBadRequest)
-		return
-	}
+	entity := user_dto.UserUpdateRequestDTO(&req)
 
-	user, err := d.UserUsecase.Update(updateData)
+	user, err := d.UserUsecase.Update(entity)
 	if err != nil {
-		http.Error(w, "Failed to create user: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Failed to update user: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resp := user_dto.UserResponseDTO(user)
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "User updated successfully!",
+		"user":    resp,
+	})
+}
+
+func (d *UserDeliveryStruct) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	userIDStr := r.URL.Query().Get("user_id")
+	if userIDStr == "" {
+		http.Error(w, "Missing user_id parameter", http.StatusBadRequest)
+		return
+	}
+
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		http.Error(w, "Invalid user_id: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = d.UserUsecase.SoftDelete(uint(userID))
+	if err != nil {
+		http.Error(w, "Failed to delete user: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"message": "Success fetch user data!",
-		"user":    user,
+		"message": "User deleted successfully",
 	})
 }
 
