@@ -30,14 +30,14 @@ gocleanarch
 │   └── role
 │       └── user_role.go
 ├── delivery
+│   ├── dto
+│   │   └── user_dto.go
 │   ├── gin
 │   │   └── user_delivery
-│   │       ├── dto
-│   │       │   └── user_dto.go
 │   │       ├── implementation
 │   │       │   └── user_delivery_implementation.go
-│   │       ├── middleware
-│   │       │   └── user_middleware.go
+│   │       ├── middlewares
+│   │       │   └── auth_middleware.go
 │   │       ├── router
 │   │       │   └── user_router.go
 │   │       └── user_delivery_interface.go
@@ -46,7 +46,7 @@ gocleanarch
 │           ├── implementation
 │           │   └── user_delivery_implementation.go
 │           ├── middleware
-│           │   └── user_middleware.go
+│           │   └── auth_middleware.go
 │           ├── router
 │           │   └── user_router.go
 │           └── user_delivery_interface.go
@@ -72,19 +72,17 @@ gocleanarch
 │           └── user_usecase_interface.go
 ├── go.mod
 ├── go.sum
-├── helper
-│   └── ImageChecker.go
 ├── public
 │   ├── images
 │   │   └── sample.jpg
 │   └── index.html
 ├── readme.md
 ├── services
-│   ├── jwt
-│   │   └── jwt_generator.go
-│   └── password
-│       └── bcrypt_generator.go
+│   ├── bcrypt.go
+│   └── jwt.go
 └── utils
+    ├── file_checker.go
+    ├── method_handler.go
     └── request_method_check.go
 ```
 
