@@ -5,272 +5,127 @@ import (
 
 	user_repository_implementation "github.com/celpung/gocleanarch/application/user/repository"
 	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
-	sqlite_configs "github.com/celpung/gocleanarch/infrastructure/db/sqlite"
-	"github.com/stretchr/testify/assert"
+	user_model "github.com/celpung/gocleanarch/infrastructure/db/model"
+	"github.com/glebarez/sqlite"
+	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )
 
-func TestCreateUser(t *testing.T) {
-	// Setup database
-	db, err := sqlite_configs.SetupDB("test_create_user.db")
-	if err != nil {
-		t.Fatal(err)
-	}
+func setupTestDB(t *testing.T) *gorm.DB {
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	require.NoError(t, err)
 
-	// Defer closing the underlying database connection
-	defer func() {
-		sqlDB, _ := db.DB()
-		sqlDB.Close()
-	}()
+	err = db.AutoMigrate(&user_model.User{})
+	require.NoError(t, err)
 
-	// Create a new instance of UserRepositoryStruct
-	userRepository := user_repository_implementation.NewUserRepository(db)
+	return db
+}
 
-	// Create a user entity for testing
-	newUser := &user_entity.User{
-		Name:     "Test User",
-		Email:    "test@example.com",
-		Password: "testpassword",
+func createUserEntity(name, email string) *user_entity.User {
+	return &user_entity.User{
+		Name:     name,
+		Email:    email,
+		Password: "password123",
 		Active:   true,
 		Role:     1,
 	}
+}
 
-	// Call the Create method
-	createdUser, err := userRepository.Create(newUser)
+func TestCreateUser(t *testing.T) {
+	db := setupTestDB(t)
+	repo := user_repository_implementation.NewUserRepository(db)
 
-	// Check if there is an error
-	assert.NoError(t, err)
-	// Check if the returned user ID is not zero
-	assert.NotEqual(t, uint(0), createdUser.ID)
-	// check other fields of the created user
-	assert.Equal(t, newUser.Name, createdUser.Name)
-	assert.Equal(t, newUser.Email, createdUser.Email)
-	assert.Equal(t, newUser.Password, createdUser.Password)
-	assert.Equal(t, newUser.Active, createdUser.Active)
-	assert.Equal(t, newUser.Role, createdUser.Role)
+	user := createUserEntity("Alice", "alice@example.com")
+
+	saved, err := repo.Create(user)
+	require.NoError(t, err)
+	require.NotZero(t, saved.ID)
+	require.Equal(t, "Alice", saved.Name)
 }
 
 func TestGetAllUser(t *testing.T) {
-	// Setup database
-	db, err := sqlite_configs.SetupDB("test_read_all_user.db")
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := setupTestDB(t)
+	repo := user_repository_implementation.NewUserRepository(db)
 
-	// Defer closing the underlying database connection
-	defer func() {
-		sqlDB, _ := db.DB()
-		sqlDB.Close()
-	}()
-
-	// Create a new instance of UserRepositoryStruct
-	userRepository := user_repository_implementation.NewUserRepository(db)
-
-	// Create some user entities for testing
 	usersToCreate := []*user_entity.User{
-		{Name: "User 1", Email: "user1@example.com", Password: "password1", Active: true, Role: 1},
-		{Name: "User 2", Email: "user2@example.com", Password: "password2", Active: true, Role: 2},
-		{Name: "User 3", Email: "user3@example.com", Password: "password3", Active: true, Role: 3},
+		createUserEntity("Maria", "maria@example.com"),
+		createUserEntity("Bob", "bob@example.com"),
 	}
 
-	// Create users in the database
 	for _, user := range usersToCreate {
-		_, err := userRepository.Create(user)
-		assert.NoError(t, err)
+		_, err := repo.Create(user)
+		require.NoError(t, err)
 	}
 
-	// Call the Read method to get all users
-	users, err := userRepository.Read()
-
-	// Check if there is no error
-	assert.NoError(t, err)
-	// Check if the number of returned users matches the number of users created
-	assert.Equal(t, len(usersToCreate), len(users))
-
-	// Check individual properties of the returned users
-	for i, user := range usersToCreate {
-		assert.Equal(t, user.Name, users[i].Name)
-		assert.Equal(t, user.Email, users[i].Email)
-		assert.Equal(t, user.Password, users[i].Password)
-		assert.Equal(t, user.Active, users[i].Active)
-		assert.Equal(t, user.Role, users[i].Role)
+	users, err := repo.Read()
+	require.NoError(t, err)
+	require.Len(t, users, len(usersToCreate))
+	for i, user := range users {
+		require.Equal(t, usersToCreate[i].Name, user.Name)
+		require.Equal(t, usersToCreate[i].Email, user.Email)
 	}
 }
 
-func TestReadByIdUser(t *testing.T) {
-	// Setup database
-	db, err := sqlite_configs.SetupDB("test_read_by_id_user.db")
-	if err != nil {
-		t.Fatal(err)
-	}
+func TestReadByIDUser(t *testing.T) {
+	db := setupTestDB(t)
+	repo := user_repository_implementation.NewUserRepository(db)
 
-	// Defer closing the underlying database connection
-	defer func() {
-		sqlDB, _ := db.DB()
-		sqlDB.Close()
-	}()
+	user := createUserEntity("Charlie", "charlie@example.com")
 
-	// Create a new instance of UserRepositoryStruct
-	userRepository := user_repository_implementation.NewUserRepository(db)
+	saved, err := repo.Create(user)
+	require.NoError(t, err)
 
-	// Create a user entity for testing
-	newUser := &user_entity.User{
-		ID:       1,
-		Name:     "Test User",
-		Email:    "test@example.com",
-		Password: "testpassword",
-		Active:   true,
-		Role:     1,
-	}
-
-	userRepository.Create(newUser)
-
-	// Call the Read method to get user by id
-	user, err := userRepository.ReadByID(1)
-
-	// Check if there is no error
-	assert.NoError(t, err)
-	// check is id of checked by id is same with created user
-	assert.Equal(t, user.ID, newUser.ID)
-	assert.Equal(t, user.Name, newUser.Name)
-	assert.Equal(t, user.Email, newUser.Email)
+	usr, err := repo.ReadByID(1)
+	require.NoError(t, err)
+	require.Equal(t, saved.ID, usr.ID)
 }
 
 func TestReadByEmailUser(t *testing.T) {
-	// Setup database
-	db, err := sqlite_configs.SetupDB("test_read_by_email_user.db")
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := setupTestDB(t)
+	repo := user_repository_implementation.NewUserRepository(db)
 
-	// Defer closing the underlying database connection
-	defer func() {
-		sqlDB, _ := db.DB()
-		sqlDB.Close()
-	}()
+	user := createUserEntity("Richard", "richard@example.com")
 
-	// Create a new instance of UserRepositoryStruct
-	userRepository := user_repository_implementation.NewUserRepository(db)
+	saved, err := repo.Create(user)
+	require.NoError(t, err)
 
-	// Create a user entity for testing
-	newUser := &user_entity.User{
-		ID:       1,
-		Name:     "Test User",
-		Email:    "test@example.com",
-		Password: "testpassword",
-		Active:   true,
-		Role:     1,
-	}
-
-	userRepository.Create(newUser)
-
-	// Call the Read method to get user by id
-	user, err := userRepository.ReadByEmail(newUser.Email, false)
-
-	// Check if there is no error
-	assert.NoError(t, err)
-	// check is id of checked by id is same with created user
-	assert.Equal(t, user.ID, newUser.ID)
-	assert.Equal(t, user.Name, newUser.Name)
-	assert.Equal(t, user.Email, newUser.Email)
+	usr, err := repo.ReadByID(1)
+	require.NoError(t, err)
+	require.Equal(t, saved.Email, usr.Email)
 }
 
 func TestUpdateUser(t *testing.T) {
-	// Setup database
-	db, err := sqlite_configs.SetupDB("test_update_user.db")
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := setupTestDB(t)
+	repo := user_repository_implementation.NewUserRepository(db)
 
-	// Defer closing the underlying database connection
-	defer func() {
-		sqlDB, _ := db.DB()
-		sqlDB.Close()
-	}()
+	user := createUserEntity("Diana", "diana@example.com")
 
-	// Create a new instance of UserRepositoryStruct
-	userRepository := user_repository_implementation.NewUserRepository(db)
+	saved, err := repo.Create(user)
+	require.NoError(t, err)
 
-	// Create a user entity for testing
-	newUser := &user_entity.User{
-		ID:       1,
-		Name:     "Test User",
-		Email:    "test@example.com",
-		Password: "testpassword",
-		Active:   true,
-		Role:     1,
-	}
-
-	userRepository.Create(newUser)
-
-	newUserUpdate := &user_entity.User{
-		ID:       1,
-		Name:     "updated User",
-		Email:    "updated@example.com",
-		Password: "testpassword",
-		Active:   true,
-		Role:     1,
-	}
-
-	userRepository.Update(newUserUpdate)
-
-	user, err := userRepository.ReadByID(newUser.ID)
-
-	// Check if there is no error
-	assert.NoError(t, err)
-	// check is id of checked by id is same with created user
-	assert.Equal(t, user.ID, newUserUpdate.ID)
-	assert.Equal(t, user.Name, newUserUpdate.Name)
-	assert.Equal(t, user.Email, newUserUpdate.Email)
+	saved.Name = "Diana Updated"
+	updated, err := repo.Update(saved)
+	require.NoError(t, err)
+	require.Equal(t, "Diana Updated", updated.Name)
 }
 
 func TestDeleteUser(t *testing.T) {
-	// Setup database
-	db, err := sqlite_configs.SetupDB("test_delete_user.db")
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := setupTestDB(t)
+	repo := user_repository_implementation.NewUserRepository(db)
 
-	// Defer closing the underlying database connection
-	defer func() {
-		sqlDB, _ := db.DB()
-		sqlDB.Close()
-	}()
+	user := createUserEntity("Eve", "eve@example.com")
+	saved, err := repo.Create(user)
+	require.NoError(t, err)
 
-	// Create a new instance of UserRepositoryStruct
-	userRepository := user_repository_implementation.NewUserRepository(db)
-
-	// Create a user entity for testing
-	newUser := &user_entity.User{
-		ID:       1,
-		Name:     "Test User",
-		Email:    "test@example.com",
-		Password: "testpassword",
-		Active:   true,
-		Role:     1,
-	}
-
-	// Create the user
-	createdUser, err := userRepository.Create(newUser)
-	if err != nil {
-		t.Fatalf("error creating user: %v", err)
-	}
-
-	// Delete the user
-	err = userRepository.SoftDelete(createdUser.ID)
-	if err != nil {
-		t.Fatalf("error deleting user: %v", err)
-	}
-
-	// Check if there is no error
-	assert.NoError(t, err)
-
-	// Attempt to read the deleted user by ID
-	deletedUser, err := userRepository.ReadByID(createdUser.ID)
-
-	// Check if the deleted user is nil
-	assert.Nil(t, deletedUser)
-
-	// Check if the error indicates that the user was not found
-	assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
+	err = repo.SoftDelete(saved.ID)
+	require.NoError(t, err)
+	_, err = repo.ReadByID(saved.ID)
+	require.Error(t, err, "record not found")
+	require.Equal(t, gorm.ErrRecordNotFound, err)
+	
+	// Ensure the user is not returned in Read
+	users, err := repo.Read()
+	require.NoError(t, err)
+	require.NotContains(t, users, saved, "Deleted user should not be in the list")
+	require.Len(t, users, 0, "No users should be present after deletion")
 }

@@ -13,12 +13,12 @@ type UserRepositoryStruct struct {
 
 // Create implements user_repository.UserRepositoryInterface.
 func (r *UserRepositoryStruct) Create(user *user_entity.User) (*user_entity.User, error) {
-	User := user_model.ToModel(user)
-	if err := r.DB.Create(User).Error; err != nil {
+	usr := user_model.ToModel(user)
+	if err := r.DB.Create(usr).Error; err != nil {
 		return nil, err
 	}
 
-	return user, nil
+	return user_model.ToEntity(usr), nil
 }
 
 // Read implements user_repository.UserRepositoryInterface.
