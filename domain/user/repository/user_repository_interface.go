@@ -8,5 +8,5 @@ type UserRepositoryInterface interface {
 	ReadByID(userID uint) (*user_entity.User, error)
 	ReadByEmail(email string, isLogin bool) (*user_entity.User, error)
 	Update(user *user_entity.User) (*user_entity.User, error)
-	Delete(userID uint) error
+	SoftDelete(userID uint) error
 }

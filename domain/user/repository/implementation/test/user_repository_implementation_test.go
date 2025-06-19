@@ -24,7 +24,7 @@ func TestCreateUser(t *testing.T) {
 	}()
 
 	// Create a new instance of UserRepositoryStruct
-	userRepository := user_repository_implementation.NewUserRepositry(db)
+	userRepository := user_repository_implementation.NewUserRepository(db)
 
 	// Create a user entity for testing
 	newUser := &user_entity.User{
@@ -64,7 +64,7 @@ func TestGetAllUser(t *testing.T) {
 	}()
 
 	// Create a new instance of UserRepositoryStruct
-	userRepository := user_repository_implementation.NewUserRepositry(db)
+	userRepository := user_repository_implementation.NewUserRepository(db)
 
 	// Create some user entities for testing
 	usersToCreate := []*user_entity.User{
@@ -111,7 +111,7 @@ func TestReadByIdUser(t *testing.T) {
 	}()
 
 	// Create a new instance of UserRepositoryStruct
-	userRepository := user_repository_implementation.NewUserRepositry(db)
+	userRepository := user_repository_implementation.NewUserRepository(db)
 
 	// Create a user entity for testing
 	newUser := &user_entity.User{
@@ -150,7 +150,7 @@ func TestReadByEmailUser(t *testing.T) {
 	}()
 
 	// Create a new instance of UserRepositoryStruct
-	userRepository := user_repository_implementation.NewUserRepositry(db)
+	userRepository := user_repository_implementation.NewUserRepository(db)
 
 	// Create a user entity for testing
 	newUser := &user_entity.User{
@@ -189,7 +189,7 @@ func TestUpdateUser(t *testing.T) {
 	}()
 
 	// Create a new instance of UserRepositoryStruct
-	userRepository := user_repository_implementation.NewUserRepositry(db)
+	userRepository := user_repository_implementation.NewUserRepository(db)
 
 	// Create a user entity for testing
 	newUser := &user_entity.User{
@@ -238,7 +238,7 @@ func TestDeleteUser(t *testing.T) {
 	}()
 
 	// Create a new instance of UserRepositoryStruct
-	userRepository := user_repository_implementation.NewUserRepositry(db)
+	userRepository := user_repository_implementation.NewUserRepository(db)
 
 	// Create a user entity for testing
 	newUser := &user_entity.User{
@@ -257,7 +257,7 @@ func TestDeleteUser(t *testing.T) {
 	}
 
 	// Delete the user
-	err = userRepository.Delete(createdUser.ID)
+	err = userRepository.SoftDelete(createdUser.ID)
 	if err != nil {
 		t.Fatalf("error deleting user: %v", err)
 	}

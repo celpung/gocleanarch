@@ -16,7 +16,7 @@ func Router(r *gin.RouterGroup) {
 	passwordService := password_services.NewPasswordService()
 	jwtService := jwt_services.NewJwtService()
 
-	repository := user_repository_implementation.NewUserRepositry(mysql_configs.DB)
+	repository := user_repository_implementation.NewUserRepository(mysql_configs.DB)
 	usecase := user_usecase_implementation.NewUserUsecase(repository, passwordService, jwtService)
 	delivery := user_delivery_implementation.NewUserDelivery(usecase)
 

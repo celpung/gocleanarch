@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
+	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 	user_repository "github.com/celpung/gocleanarch/domain/user/repository"
 	user_usecase "github.com/celpung/gocleanarch/domain/user/usecase"
-	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 	jwt_services "github.com/celpung/gocleanarch/services/jwt"
 	password_services "github.com/celpung/gocleanarch/services/password"
 )
@@ -48,7 +48,7 @@ func (u *UserUsecaseStruct) Create(user *user_entity.User) (*user_entity.UserHtt
 // Delete implements user_usecase.UserUsecaseInterface.
 func (u *UserUsecaseStruct) Delete(userID uint) error {
 	// perform delete user
-	return u.UserRepository.Delete(userID)
+	return u.UserRepository.SoftDelete(userID)
 }
 
 // Read implements user_usecase.UserUsecaseInterface.
