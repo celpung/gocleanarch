@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	user_dto "github.com/celpung/gocleanarch/delivery/dto"
-	"github.com/celpung/gocleanarch/delivery/http/user_delivery"
+	"github.com/celpung/gocleanarch/delivery/std/http/user_delivery"
 	user_usecase "github.com/celpung/gocleanarch/domain/user/usecase"
 )
 

@@ -20,26 +20,34 @@ func main() {
 	// setup mode
 	mode := environment.Env.MODE
 
-	app := fiber.New(fiber.Config{
+	r := fiber.New(fiber.Config{
 		AppName:               "Skoolar Auth",
 		DisableStartupMessage: mode == "release",
 	})
 
-	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
+	allowedOrigins := environment.Env.ALLOWED_ORIGINS
+
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: allowedOrigins,
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
 
 	if mode == "debug" {
-		app.Use(func(c *fiber.Ctx) error {
+		r.Use(func(c *fiber.Ctx) error {
 			log.Printf("[DEBUG] %s %s", c.Method(), c.Path())
 			return c.Next()
 		})
 	}
 
-	api := app.Group("/api")
+	api := r.Group("/api")
 	user_router.RegisterUserRouter(api)
 
+	r.Get("/", func(c *fiber.Ctx) error {
+		return c.SendFile("../../public/index.html")
+	})
+
+	r.Static("/images", "../../public/images")
+
 	log.Printf("Running in %s mode", mode)
-	log.Fatal(app.Listen(":" + environment.Env.PORT))
+	log.Fatal(r.Listen(":" + environment.Env.PORT))
 }

@@ -43,7 +43,7 @@ func init() {
 		DB_PORT:         getEnv("DB_PORT", "3306"),
 		DB_HOST:         getEnv("DB_HOST", "127.0.0.1"),
 		DB_DIALECT:      getEnv("DB_DIALECT", "mysql"),
-		ALLOWED_ORIGINS: getEnv("ALLOWED_ORIGINS", "http://localhost"),
+		ALLOWED_ORIGINS: getEnv("ALLOWED_ORIGINS", "http://localhost,http://localhost:5173,http://localhost:3000"),
 	}
 }
 

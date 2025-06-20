@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	user_router "github.com/celpung/gocleanarch/delivery/http/user_delivery/router"
+	user_router "github.com/celpung/gocleanarch/delivery/std/http/user_delivery/router"
 	mysql_configs "github.com/celpung/gocleanarch/infrastructure/db/mysql"
 	"github.com/celpung/gocleanarch/infrastructure/environment"
 )

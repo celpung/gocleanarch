@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	crud_router "github.com/celpung/go-generic-crud/crud_router"
@@ -32,11 +33,10 @@ func main() {
 	//setup gin
 	r := gin.Default()
 
+	allowedOrigins := strings.Split(environment.Env.ALLOWED_ORIGINS, ",")
+
 	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{
-			"http://localhost:5173",
-			"http://localhost",
-		},
+		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -48,6 +48,7 @@ func main() {
 	api := r.Group("/api")
 	user_router.Router(api)
 
+	// implement generic CRUD router
 	crud_router.SetupRouter[slider_entity.Slider](
 		api,
 		mysql_configs.DB,

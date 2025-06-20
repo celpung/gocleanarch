@@ -5,8 +5,8 @@ import (
 
 	user_repository_implementation "github.com/celpung/gocleanarch/application/user/repository"
 	user_usecase_implementation "github.com/celpung/gocleanarch/application/user/usecase"
-	user_delivery_implementation "github.com/celpung/gocleanarch/delivery/http/user_delivery/implementation"
-	middlewares "github.com/celpung/gocleanarch/delivery/http/user_delivery/middleware"
+	user_delivery_implementation "github.com/celpung/gocleanarch/delivery/std/http/user_delivery/implementation"
+	middlewares "github.com/celpung/gocleanarch/delivery/std/http/user_delivery/middleware"
 	"github.com/celpung/gocleanarch/infrastructure/auths"
 	mysql_configs "github.com/celpung/gocleanarch/infrastructure/db/mysql"
 	"github.com/celpung/gocleanarch/infrastructure/role"
