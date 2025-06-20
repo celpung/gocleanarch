@@ -4,7 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/celpung/gocleanarch)](https://goreportcard.com/report/github.com/celpung/gocleanarch)
 [![GoDoc](https://godoc.org/github.com/celpung/gocleanarch?status.svg)](https://godoc.org/github.com/celpung/gocleanarch)
 
-> **Version:** `v2.4.0`
+> **Version:** `v2.4.1`
 
 ## 📚 Introduction
 
