@@ -3,8 +3,8 @@ package dto
 import "github.com/celpung/gocleanarch/domain/user/entity"
 
 type UserLoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=8"`
+	Email    string `json:"email" binding:"required,email" validate:"required,email"`
+	Password string `json:"password" binding:"required,min=8" validate:"required,min=8"`
 }
 
 type UserResponse struct {
@@ -35,20 +35,20 @@ func UserResponseListDTO(entities []*entity.User) []*UserResponse {
 
 // DTO untuk create
 type UserCreateRequest struct {
-	Name     string `json:"name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=8"`
-	Role     uint   `json:"role" binding:"required"`
+	Name     string `json:"name" binding:"required" validate:"required"`
+	Email    string `json:"email" binding:"required,email" validate:"required,email"`
+	Password string `json:"password" binding:"required,min=8" validate:"required,min=8"`
+	Role     uint   `json:"role" binding:"required" validate:"required"`
 }
 
 // DTO untuk update
 type UserUpdateRequest struct {
-	ID       uint   `json:"id" binding:"required"`
-	Name     string `json:"name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password,omitempty"`
-	Active   bool   `json:"active,omitempty"`
-	Role     uint   `json:"role,omitempty"`
+	ID       uint   `json:"id" binding:"required" validate:"required"`
+	Name     string `json:"name" binding:"required" validate:"required"`
+	Email    string `json:"email" binding:"required,email" validate:"required,email"`
+	Password string `json:"password" binding:"omitempty,min=8" validate:"omitempty,min=8"`
+	Active   bool   `json:"active" binding:"omitempty" validate:"omitempty"`
+	Role     uint   `json:"role" binding:"omitempty" validate:"omitempty"`
 }
 
 // Konversi Create

@@ -8,6 +8,7 @@ import (
 	"github.com/celpung/gocleanarch/delivery/dto"
 	delivery "github.com/celpung/gocleanarch/delivery/std/http/user"
 	"github.com/celpung/gocleanarch/domain/user/usecase"
+	"github.com/celpung/gocleanarch/infrastructure/validation"
 )
 
 type UserDeliveryStruct struct {
@@ -26,6 +27,11 @@ func (d *UserDeliveryStruct) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	entity := dto.UserCreateRequestDTO(&req)
+
+	if err := validation.ValidateStruct(req); err != nil {
+		http.Error(w, "Validation failed: "+err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	user, err := d.UserUsecase.Create(entity)
 	if err != nil {
@@ -46,6 +52,11 @@ func (d *UserDeliveryStruct) Login(w http.ResponseWriter, r *http.Request) {
 	var req dto.UserLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid login data: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := validation.ValidateStruct(req); err != nil {
+		http.Error(w, "Validation failed: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -86,6 +97,11 @@ func (d *UserDeliveryStruct) UpdateUser(w http.ResponseWriter, r *http.Request) 
 	}
 
 	entity := dto.UserUpdateRequestDTO(&req)
+
+	if err := validation.ValidateStruct(req); err != nil {
+		http.Error(w, "Validation failed: "+err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	user, err := d.UserUsecase.Update(entity)
 	if err != nil {
