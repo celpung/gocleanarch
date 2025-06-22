@@ -1,12 +1,12 @@
 package usecase
 
-import user_entity "github.com/celpung/gocleanarch/domain/user/entity"
+import "github.com/celpung/gocleanarch/domain/user/entity"
 
 type UserUsecaseInterface interface {
-	Create(user *user_entity.User) (*user_entity.User, error)
-	Read() ([]*user_entity.User, error)
-	ReadByID(userID uint) (*user_entity.User, error)
-	Update(user *user_entity.User) (*user_entity.User, error)
+	Create(user *entity.User) (*entity.User, error)
+	Read() ([]*entity.User, error)
+	ReadByID(userID uint) (*entity.User, error)
+	Update(user *entity.User) (*entity.User, error)
 	SoftDelete(userID uint) error
 	Login(email, password string) (string, error)
 }

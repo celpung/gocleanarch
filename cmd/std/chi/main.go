@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	user_router "github.com/celpung/gocleanarch/delivery/std/chi/user_delivery/router"
+	user_router "github.com/celpung/gocleanarch/delivery/std/chi/user/router"
 	"github.com/celpung/gocleanarch/infrastructure/db/mysql"
 	"github.com/celpung/gocleanarch/infrastructure/environment"
 )

@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	user_router "github.com/celpung/gocleanarch/delivery/fiber/user_delivery/router"
+	user_router "github.com/celpung/gocleanarch/delivery/fiber/user/router"
 	"github.com/celpung/gocleanarch/infrastructure/db/mysql"
 	"github.com/celpung/gocleanarch/infrastructure/environment"
 

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	crud_router "github.com/celpung/go-generic-crud/crud_router"
-	user_router "github.com/celpung/gocleanarch/delivery/gin/user_delivery/router"
+	user_router "github.com/celpung/gocleanarch/delivery/gin/user/router"
 	slider_entity "github.com/celpung/gocleanarch/domain/slider/entity"
 	"github.com/celpung/gocleanarch/infrastructure/db/mysql"
 	"github.com/celpung/gocleanarch/infrastructure/environment"
