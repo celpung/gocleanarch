@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	user_dto "github.com/celpung/gocleanarch/delivery/dto"
+	"github.com/celpung/gocleanarch/delivery/dto"
 	"github.com/celpung/gocleanarch/delivery/std/http/user_delivery"
 	user_usecase "github.com/celpung/gocleanarch/domain/user/usecase"
 )
@@ -19,13 +19,13 @@ func (d *UserDeliveryStruct) Register(w http.ResponseWriter, r *http.Request) {
 	// userID := r.Context().Value(middlewares.ContextKeyUserID)
 	// email := r.Context().Value(middlewares.ContextKeyEmail)
 	// role := r.Context().Value(middlewares.ContextKeyRole)
-	var req user_dto.UserCreateRequest
+	var req dto.UserCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid input data: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	entity := user_dto.UserCreateRequestDTO(&req)
+	entity := dto.UserCreateRequestDTO(&req)
 
 	user, err := d.UserUsecase.Create(entity)
 	if err != nil {
@@ -33,7 +33,7 @@ func (d *UserDeliveryStruct) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := user_dto.UserResponseDTO(user)
+	resp := dto.UserResponseDTO(user)
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -43,7 +43,7 @@ func (d *UserDeliveryStruct) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *UserDeliveryStruct) Login(w http.ResponseWriter, r *http.Request) {
-	var req user_dto.UserLoginRequest
+	var req dto.UserLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid login data: "+err.Error(), http.StatusBadRequest)
 		return
@@ -69,7 +69,7 @@ func (d *UserDeliveryStruct) GetAllUserData(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	resp := user_dto.UserResponseListDTO(users)
+	resp := dto.UserResponseListDTO(users)
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -79,13 +79,13 @@ func (d *UserDeliveryStruct) GetAllUserData(w http.ResponseWriter, r *http.Reque
 }
 
 func (d *UserDeliveryStruct) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	var req user_dto.UserUpdateRequest
+	var req dto.UserUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid update data: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	entity := user_dto.UserUpdateRequestDTO(&req)
+	entity := dto.UserUpdateRequestDTO(&req)
 
 	user, err := d.UserUsecase.Update(entity)
 	if err != nil {
@@ -93,7 +93,7 @@ func (d *UserDeliveryStruct) UpdateUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	resp := user_dto.UserResponseDTO(user)
+	resp := dto.UserResponseDTO(user)
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{

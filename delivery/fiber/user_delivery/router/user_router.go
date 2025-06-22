@@ -6,7 +6,7 @@ import (
 	user_delivery_implementation "github.com/celpung/gocleanarch/delivery/fiber/user_delivery/implementation"
 	middlewares "github.com/celpung/gocleanarch/delivery/fiber/user_delivery/middlewara"
 	"github.com/celpung/gocleanarch/infrastructure/auths"
-	mysql_configs "github.com/celpung/gocleanarch/infrastructure/db/mysql"
+	"github.com/celpung/gocleanarch/infrastructure/db/mysql"
 	"github.com/celpung/gocleanarch/infrastructure/role"
 	"github.com/gofiber/fiber/v2"
 )
@@ -14,7 +14,7 @@ import (
 func RegisterUserRouter(router fiber.Router) {
 	passwordService := auths.NewPasswordService()
 	jwtService := auths.NewJwtService()
-	repo := user_repository_implementation.NewUserRepository(mysql_configs.DB)
+	repo := user_repository_implementation.NewUserRepository(mysql.DB)
 	usecase := user_usecase_implementation.NewUserUsecase(repo, passwordService, jwtService)
 	delivery := user_delivery_implementation.NewUserDelivery(usecase)
 

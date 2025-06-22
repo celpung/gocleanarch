@@ -1,4 +1,4 @@
-package user_dto
+package dto
 
 import user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 

@@ -4,18 +4,18 @@ import (
 	"net/http"
 	"strconv"
 
-	user_dto "github.com/celpung/gocleanarch/delivery/dto"
+	"github.com/celpung/gocleanarch/delivery/dto"
 	"github.com/celpung/gocleanarch/delivery/gin/user_delivery"
-	user_usecase "github.com/celpung/gocleanarch/domain/user/usecase"
+	"github.com/celpung/gocleanarch/domain/user/usecase"
 	"github.com/gin-gonic/gin"
 )
 
 type UserDeliveryStruct struct {
-	UserUsecase user_usecase.UserUsecaseInterface
+	UserUsecase usecase.UserUsecaseInterface
 }
 
 func (d *UserDeliveryStruct) Register(c *gin.Context) {
-	var req user_dto.UserCreateRequest
+	var req dto.UserCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Invalid input data",
@@ -24,7 +24,7 @@ func (d *UserDeliveryStruct) Register(c *gin.Context) {
 		return
 	}
 
-	userEntity := user_dto.UserCreateRequestDTO(&req)
+	userEntity := dto.UserCreateRequestDTO(&req)
 
 	user, err := d.UserUsecase.Create(userEntity)
 	if err != nil {
@@ -37,7 +37,7 @@ func (d *UserDeliveryStruct) Register(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Register success!",
-		"user":    user_dto.UserResponseDTO(user),
+		"user":    dto.UserResponseDTO(user),
 	})
 }
 
@@ -54,12 +54,12 @@ func (d *UserDeliveryStruct) GetAllUserData(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Success fetch user data!",
-		"user":    user_dto.UserResponseListDTO(user),
+		"user":    dto.UserResponseListDTO(user),
 	})
 }
 
 func (d *UserDeliveryStruct) UpdateUser(c *gin.Context) {
-	var req user_dto.UserUpdateRequest
+	var req dto.UserUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Failed to bind update data!",
@@ -68,7 +68,7 @@ func (d *UserDeliveryStruct) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	userEntity := user_dto.UserUpdateRequestDTO(&req)
+	userEntity := dto.UserUpdateRequestDTO(&req)
 
 	user, err := d.UserUsecase.Update(userEntity)
 	if err != nil {
@@ -81,7 +81,7 @@ func (d *UserDeliveryStruct) UpdateUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "User updated successfully!",
-		"user":    user_dto.UserResponseDTO(user),
+		"user":    dto.UserResponseDTO(user),
 	})
 }
 
@@ -114,7 +114,7 @@ func (d *UserDeliveryStruct) DeleteUser(c *gin.Context) {
 
 // Login implements user_delivery.UserDeliveryInterface.
 func (d *UserDeliveryStruct) Login(c *gin.Context) {
-	var login user_dto.UserLoginRequest
+	var login dto.UserLoginRequest
 
 	if err := c.ShouldBindJSON(&login); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -140,7 +140,7 @@ func (d *UserDeliveryStruct) Login(c *gin.Context) {
 	})
 }
 
-func NewUserDelivery(usecase user_usecase.UserUsecaseInterface) user_delivery.UserDeliveryInterface {
+func NewUserDelivery(usecase usecase.UserUsecaseInterface) user_delivery.UserDeliveryInterface {
 	return &UserDeliveryStruct{
 		UserUsecase: usecase,
 	}

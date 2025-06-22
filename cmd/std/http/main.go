@@ -7,15 +7,15 @@ import (
 	"strings"
 
 	user_router "github.com/celpung/gocleanarch/delivery/std/http/user_delivery/router"
-	mysql_configs "github.com/celpung/gocleanarch/infrastructure/db/mysql"
+	"github.com/celpung/gocleanarch/infrastructure/db/mysql"
 	"github.com/celpung/gocleanarch/infrastructure/environment"
 )
 
 func main() {
 	// Connect to the database and auto migrate
-	mysql_configs.CreateDatabaseIfNotExists()
-	mysql_configs.ConnectDatabase()
-	mysql_configs.AutoMigrage()
+	mysql.CreateDatabaseIfNotExists()
+	mysql.ConnectDatabase()
+	mysql.AutoMigrage()
 
 	// Setup mode
 	mode := environment.Env.MODE

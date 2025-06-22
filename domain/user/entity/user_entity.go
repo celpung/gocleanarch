@@ -1,4 +1,4 @@
-package user_entity
+package entity
 
 import "time"
 

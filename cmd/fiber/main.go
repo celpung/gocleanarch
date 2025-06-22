@@ -4,7 +4,7 @@ import (
 	"log"
 
 	user_router "github.com/celpung/gocleanarch/delivery/fiber/user_delivery/router"
-	mysql_configs "github.com/celpung/gocleanarch/infrastructure/db/mysql"
+	"github.com/celpung/gocleanarch/infrastructure/db/mysql"
 	"github.com/celpung/gocleanarch/infrastructure/environment"
 
 	"github.com/gofiber/fiber/v2"
@@ -13,9 +13,9 @@ import (
 
 func main() {
 	// Connect to the database and auto migrate
-	mysql_configs.CreateDatabaseIfNotExists()
-	mysql_configs.ConnectDatabase()
-	mysql_configs.AutoMigrage()
+	mysql.CreateDatabaseIfNotExists()
+	mysql.ConnectDatabase()
+	mysql.AutoMigrage()
 
 	// setup mode
 	mode := environment.Env.MODE

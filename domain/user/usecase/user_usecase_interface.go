@@ -1,4 +1,4 @@
-package user_usecase
+package usecase
 
 import user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 

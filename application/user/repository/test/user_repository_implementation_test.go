@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	user_repository_implementation "github.com/celpung/gocleanarch/application/user/repository"
-	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
-	user_model "github.com/celpung/gocleanarch/infrastructure/db/model"
+	"github.com/celpung/gocleanarch/domain/user/entity"
+	"github.com/celpung/gocleanarch/infrastructure/db/model"
 	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
@@ -15,14 +15,14 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	require.NoError(t, err)
 
-	err = db.AutoMigrate(&user_model.User{})
+	err = db.AutoMigrate(&model.User{})
 	require.NoError(t, err)
 
 	return db
 }
 
-func createUserEntity(name, email string) *user_entity.User {
-	return &user_entity.User{
+func createUserEntity(name, email string) *entity.User {
+	return &entity.User{
 		Name:     name,
 		Email:    email,
 		Password: "password123",
@@ -47,7 +47,7 @@ func TestGetAllUser(t *testing.T) {
 	db := setupTestDB(t)
 	repo := user_repository_implementation.NewUserRepository(db)
 
-	usersToCreate := []*user_entity.User{
+	usersToCreate := []*entity.User{
 		createUserEntity("Maria", "maria@example.com"),
 		createUserEntity("Bob", "bob@example.com"),
 	}
@@ -122,7 +122,7 @@ func TestDeleteUser(t *testing.T) {
 	_, err = repo.ReadByID(saved.ID)
 	require.Error(t, err, "record not found")
 	require.Equal(t, gorm.ErrRecordNotFound, err)
-	
+
 	// Ensure the user is not returned in Read
 	users, err := repo.Read()
 	require.NoError(t, err)

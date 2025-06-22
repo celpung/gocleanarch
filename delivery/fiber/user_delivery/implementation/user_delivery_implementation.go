@@ -3,14 +3,14 @@ package user_delivery_implementation
 import (
 	"strconv"
 
-	user_dto "github.com/celpung/gocleanarch/delivery/dto"
+	"github.com/celpung/gocleanarch/delivery/dto"
 	"github.com/celpung/gocleanarch/delivery/fiber/user_delivery"
-	user_usecase "github.com/celpung/gocleanarch/domain/user/usecase"
+	"github.com/celpung/gocleanarch/domain/user/usecase"
 	"github.com/gofiber/fiber/v2"
 )
 
 type UserDeliveryStruct struct {
-	UserUsecase user_usecase.UserUsecaseInterface
+	UserUsecase usecase.UserUsecaseInterface
 }
 
 func (d *UserDeliveryStruct) Register(c *fiber.Ctx) error {
@@ -18,7 +18,7 @@ func (d *UserDeliveryStruct) Register(c *fiber.Ctx) error {
 	// email := c.Locals("email")
 	// role := c.Locals("role")
 
-	var req user_dto.UserCreateRequest
+	var req dto.UserCreateRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid input data",
@@ -26,7 +26,7 @@ func (d *UserDeliveryStruct) Register(c *fiber.Ctx) error {
 		})
 	}
 
-	userEntity := user_dto.UserCreateRequestDTO(&req)
+	userEntity := dto.UserCreateRequestDTO(&req)
 	user, err := d.UserUsecase.Create(userEntity)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -37,12 +37,12 @@ func (d *UserDeliveryStruct) Register(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Register success!",
-		"user":    user_dto.UserResponseDTO(user),
+		"user":    dto.UserResponseDTO(user),
 	})
 }
 
 func (d *UserDeliveryStruct) Login(c *fiber.Ctx) error {
-	var login user_dto.UserLoginRequest
+	var login dto.UserLoginRequest
 	if err := c.BodyParser(&login); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Failed to bind login data!",
@@ -75,12 +75,12 @@ func (d *UserDeliveryStruct) GetAllUserData(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Success fetch user data!",
-		"user":    user_dto.UserResponseListDTO(users),
+		"user":    dto.UserResponseListDTO(users),
 	})
 }
 
 func (d *UserDeliveryStruct) UpdateUser(c *fiber.Ctx) error {
-	var req user_dto.UserUpdateRequest
+	var req dto.UserUpdateRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Failed to bind update data!",
@@ -88,7 +88,7 @@ func (d *UserDeliveryStruct) UpdateUser(c *fiber.Ctx) error {
 		})
 	}
 
-	userEntity := user_dto.UserUpdateRequestDTO(&req)
+	userEntity := dto.UserUpdateRequestDTO(&req)
 	user, err := d.UserUsecase.Update(userEntity)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -99,7 +99,7 @@ func (d *UserDeliveryStruct) UpdateUser(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "User updated successfully!",
-		"user":    user_dto.UserResponseDTO(user),
+		"user":    dto.UserResponseDTO(user),
 	})
 }
 
@@ -125,7 +125,7 @@ func (d *UserDeliveryStruct) DeleteUser(c *fiber.Ctx) error {
 	})
 }
 
-func NewUserDelivery(usecase user_usecase.UserUsecaseInterface) user_delivery.UserDeliveryInterface {
+func NewUserDelivery(usecase usecase.UserUsecaseInterface) user_delivery.UserDeliveryInterface {
 	return &UserDeliveryStruct{
 		UserUsecase: usecase,
 	}

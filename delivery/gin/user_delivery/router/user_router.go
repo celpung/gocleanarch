@@ -6,7 +6,7 @@ import (
 	user_delivery_implementation "github.com/celpung/gocleanarch/delivery/gin/user_delivery/implementation"
 	"github.com/celpung/gocleanarch/delivery/gin/user_delivery/middlewares"
 	"github.com/celpung/gocleanarch/infrastructure/auths"
-	mysql_configs "github.com/celpung/gocleanarch/infrastructure/db/mysql"
+	"github.com/celpung/gocleanarch/infrastructure/db/mysql"
 	"github.com/celpung/gocleanarch/infrastructure/role"
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +15,7 @@ func Router(r *gin.RouterGroup) {
 	passwordService := auths.NewPasswordService()
 	jwtService := auths.NewJwtService()
 
-	repository := user_repository_implementation.NewUserRepository(mysql_configs.DB)
+	repository := user_repository_implementation.NewUserRepository(mysql.DB)
 	usecase := user_usecase_implementation.NewUserUsecase(repository, passwordService, jwtService)
 	delivery := user_delivery_implementation.NewUserDelivery(usecase)
 

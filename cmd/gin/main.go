@@ -9,7 +9,7 @@ import (
 	crud_router "github.com/celpung/go-generic-crud/crud_router"
 	user_router "github.com/celpung/gocleanarch/delivery/gin/user_delivery/router"
 	slider_entity "github.com/celpung/gocleanarch/domain/slider/entity"
-	mysql_configs "github.com/celpung/gocleanarch/infrastructure/db/mysql"
+	"github.com/celpung/gocleanarch/infrastructure/db/mysql"
 	"github.com/celpung/gocleanarch/infrastructure/environment"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -17,9 +17,9 @@ import (
 
 func main() {
 	// Connect to the database and auto migrate
-	mysql_configs.CreateDatabaseIfNotExists()
-	mysql_configs.ConnectDatabase()
-	mysql_configs.AutoMigrage()
+	mysql.CreateDatabaseIfNotExists()
+	mysql.ConnectDatabase()
+	mysql.AutoMigrage()
 
 	// setup mode
 	mode := environment.Env.MODE
@@ -51,7 +51,7 @@ func main() {
 	// implement generic CRUD router
 	crud_router.SetupRouter[slider_entity.Slider](
 		api,
-		mysql_configs.DB,
+		mysql.DB,
 		reflect.TypeOf(slider_entity.Slider{}),
 		"/sliders",
 		map[string][]gin.HandlerFunc{

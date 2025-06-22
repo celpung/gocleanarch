@@ -1,4 +1,4 @@
-package user_repository
+package repository
 
 import user_entity "github.com/celpung/gocleanarch/domain/user/entity"
 

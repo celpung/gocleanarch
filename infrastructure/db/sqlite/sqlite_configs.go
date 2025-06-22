@@ -1,4 +1,4 @@
-package sqlite_configs
+package sqlite
 
 import (
 	"fmt"
