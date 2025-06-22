@@ -37,24 +37,12 @@ func (u *UserUsecaseStruct) Create(user *entity.User) (*entity.User, error) {
 
 // Read implements usecase.UserUsecaseInterface.
 func (u *UserUsecaseStruct) Read() ([]*entity.User, error) {
-	// perform read all user
-	user, err := u.UserRepository.Read()
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
+	return u.UserRepository.Read()
 }
 
 // ReadByID implements usecase.UserUsecaseInterface.
 func (u *UserUsecaseStruct) ReadByID(userID uint) (*entity.User, error) {
-	// perform read user by id
-	user, userErr := u.UserRepository.ReadByID(userID)
-	if userErr != nil {
-		return nil, userErr
-	}
-
-	return user, nil
+	return u.UserRepository.ReadByID(userID)
 }
 
 // Update implements usecase.UserUsecaseInterface.
