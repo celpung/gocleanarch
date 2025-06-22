@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
+	"github.com/celpung/gocleanarch/domain/user/entity"
 	"gorm.io/gorm"
 )
 
@@ -19,7 +19,7 @@ type User struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
-func ToModel(e *user_entity.User) *User {
+func ToModel(e *entity.User) *User {
 	var deletedAt gorm.DeletedAt
 	if e.DeletedAt != nil {
 		deletedAt = gorm.DeletedAt{Time: *e.DeletedAt, Valid: true}
@@ -40,12 +40,12 @@ func ToModel(e *user_entity.User) *User {
 	}
 }
 
-func ToEntity(m *User) *user_entity.User {
+func ToEntity(m *User) *entity.User {
 	var deletedAt *time.Time
 	if m.DeletedAt.Valid {
 		deletedAt = &m.DeletedAt.Time
 	}
-	return &user_entity.User{
+	return &entity.User{
 		ID:        m.ID,
 		Name:      m.Name,
 		Email:     m.Email,
@@ -58,15 +58,15 @@ func ToEntity(m *User) *user_entity.User {
 	}
 }
 
-func ToEntityList(models []*User) []*user_entity.User {
-	entities := make([]*user_entity.User, 0, len(models))
+func ToEntityList(models []*User) []*entity.User {
+	entities := make([]*entity.User, 0, len(models))
 	for _, m := range models {
 		entities = append(entities, ToEntity(m))
 	}
 	return entities
 }
 
-func ToModelList(entities []*user_entity.User) []*User {
+func ToModelList(entities []*entity.User) []*User {
 	models := make([]*User, 0, len(entities))
 	for _, e := range entities {
 		models = append(models, ToModel(e))
