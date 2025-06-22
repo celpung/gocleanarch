@@ -19,19 +19,6 @@ type User struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
-//	func ToModel(e *user_entity.User) *User {
-//		return &User{
-//			ID:        e.ID,
-//			Name:      e.Name,
-//			Email:     e.Email,
-//			Password:  e.Password,
-//			Active:    e.Active,
-//			Role:      e.Role,
-//			CreatedAt: e.CreatedAt,
-//			UpdatedAt: e.UpdatedAt,
-//			DeletedAt: gorm.DeletedAt{Time: *e.DeletedAt, Valid: e.DeletedAt != nil},
-//		}
-//	}
 func ToModel(e *user_entity.User) *User {
 	var deletedAt gorm.DeletedAt
 	if e.DeletedAt != nil {

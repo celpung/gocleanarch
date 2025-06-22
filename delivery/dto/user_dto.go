@@ -1,6 +1,6 @@
 package dto
 
-import user_entity "github.com/celpung/gocleanarch/domain/user/entity"
+import "github.com/celpung/gocleanarch/domain/user/entity"
 
 type UserLoginRequest struct {
 	Email    string `json:"email" binding:"required,email"`
@@ -15,7 +15,7 @@ type UserResponse struct {
 	Role   uint   `json:"role"`
 }
 
-func UserResponseDTO(entity *user_entity.User) *UserResponse {
+func UserResponseDTO(entity *entity.User) *UserResponse {
 	return &UserResponse{
 		ID:     entity.ID,
 		Name:   entity.Name,
@@ -25,7 +25,7 @@ func UserResponseDTO(entity *user_entity.User) *UserResponse {
 	}
 }
 
-func UserResponseListDTO(entities []*user_entity.User) []*UserResponse {
+func UserResponseListDTO(entities []*entity.User) []*UserResponse {
 	var responses []*UserResponse
 	for _, entity := range entities {
 		responses = append(responses, UserResponseDTO(entity))
@@ -52,8 +52,8 @@ type UserUpdateRequest struct {
 }
 
 // Konversi Create
-func UserCreateRequestDTO(dto *UserCreateRequest) *user_entity.User {
-	return &user_entity.User{
+func UserCreateRequestDTO(dto *UserCreateRequest) *entity.User {
+	return &entity.User{
 		Name:     dto.Name,
 		Email:    dto.Email,
 		Password: dto.Password,
@@ -63,8 +63,8 @@ func UserCreateRequestDTO(dto *UserCreateRequest) *user_entity.User {
 }
 
 // Konversi Update
-func UserUpdateRequestDTO(dto *UserUpdateRequest) *user_entity.User {
-	return &user_entity.User{
+func UserUpdateRequestDTO(dto *UserUpdateRequest) *entity.User {
+	return &entity.User{
 		ID:       dto.ID,
 		Name:     dto.Name,
 		Email:    dto.Email,

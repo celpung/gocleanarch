@@ -1,4 +1,4 @@
-package router
+package user_router
 
 import (
 	"net/http"
