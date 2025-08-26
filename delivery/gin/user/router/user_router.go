@@ -5,15 +5,15 @@ import (
 	usecase_implementation "github.com/celpung/gocleanarch/application/user/usecase_implementation"
 	delivery_implementation "github.com/celpung/gocleanarch/delivery/gin/user/implementation"
 	"github.com/celpung/gocleanarch/delivery/gin/user/middleware"
-	"github.com/celpung/gocleanarch/infrastructure/auths"
+	"github.com/celpung/gocleanarch/infrastructure/auth"
 	"github.com/celpung/gocleanarch/infrastructure/db/mysql"
 	"github.com/celpung/gocleanarch/infrastructure/role"
 	"github.com/gin-gonic/gin"
 )
 
 func Router(r *gin.RouterGroup) {
-	passwordService := auths.NewPasswordService()
-	jwtService := auths.NewJwtService()
+	passwordService := auth.NewPasswordService()
+	jwtService := auth.NewJwtService()
 
 	repository := repository_implementation.NewUserRepository(mysql.DB)
 	usecase := usecase_implementation.NewUserUsecase(repository, passwordService, jwtService)

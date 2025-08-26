@@ -6,16 +6,16 @@ import (
 	repository_implementation "github.com/celpung/gocleanarch/application/user/repository_implementation"
 	usecase_implementation "github.com/celpung/gocleanarch/application/user/usecase_implementation"
 	delivery_implementation "github.com/celpung/gocleanarch/delivery/std/chi/user/implementation"
-	"github.com/celpung/gocleanarch/delivery/std/chi/user/middleware"
-	"github.com/celpung/gocleanarch/infrastructure/auths"
+	"github.com/celpung/gocleanarch/infrastructure/auth"
 	"github.com/celpung/gocleanarch/infrastructure/db/mysql"
+	"github.com/celpung/gocleanarch/infrastructure/middleware"
 	"github.com/celpung/gocleanarch/infrastructure/role"
 )
 
 // Router mendaftarkan semua route user ke router utama
 func Router(r chi.Router) {
-	passwordService := auths.NewPasswordService()
-	jwtService := auths.NewJwtService()
+	passwordService := auth.NewPasswordService()
+	jwtService := auth.NewJwtService()
 
 	repository := repository_implementation.NewUserRepository(mysql.DB)
 	usecase := usecase_implementation.NewUserUsecase(repository, passwordService, jwtService)
