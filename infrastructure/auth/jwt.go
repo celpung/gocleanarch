@@ -3,7 +3,7 @@ package auth
 import (
 	"time"
 
-	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
+	user_entity "github.com/celpung/gocleanarch/application/user/domain/entity"
 	"github.com/celpung/gocleanarch/infrastructure/environment"
 	"github.com/golang-jwt/jwt/v4"
 )

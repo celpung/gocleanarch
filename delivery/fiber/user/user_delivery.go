@@ -2,7 +2,7 @@ package delivery
 
 import "github.com/gofiber/fiber/v2"
 
-type UserDeliveryInterface interface {
+type UserDelivery interface {
 	Register(c *fiber.Ctx) error
 	GetAllUserData(c *fiber.Ctx) error
 	UpdateUser(c *fiber.Ctx) error

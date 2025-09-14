@@ -3,9 +3,9 @@ package user_router
 import (
 	"github.com/go-chi/chi/v5"
 
-	repository_implementation "github.com/celpung/gocleanarch/application/user/repository_implementation"
-	usecase_implementation "github.com/celpung/gocleanarch/application/user/usecase_implementation"
-	delivery_implementation "github.com/celpung/gocleanarch/delivery/std/chi/user/implementation"
+	repository_impl "github.com/celpung/gocleanarch/application/user/impl/repository"
+	usecase_impl "github.com/celpung/gocleanarch/application/user/impl/usecase"
+	delivery_impl "github.com/celpung/gocleanarch/delivery/std/chi/user/impl"
 	"github.com/celpung/gocleanarch/infrastructure/auth"
 	"github.com/celpung/gocleanarch/infrastructure/db/mysql"
 	"github.com/celpung/gocleanarch/infrastructure/middleware"
@@ -17,9 +17,9 @@ func Router(r chi.Router) {
 	passwordService := auth.NewPasswordService()
 	jwtService := auth.NewJwtService()
 
-	repository := repository_implementation.NewUserRepository(mysql.DB)
-	usecase := usecase_implementation.NewUserUsecase(repository, passwordService, jwtService)
-	delivery := delivery_implementation.NewUserDelivery(usecase)
+	repository := repository_impl.NewUserRepository(mysql.DB)
+	usecase := usecase_impl.NewUserUsecase(repository, passwordService, jwtService)
+	delivery := delivery_impl.NewUserDelivery(usecase)
 
 	r.Route("/users", func(r chi.Router) {
 		// Public routes

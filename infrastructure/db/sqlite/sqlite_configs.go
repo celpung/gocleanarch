@@ -3,7 +3,8 @@ package sqlite
 import (
 	"fmt"
 
-	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
+	// user_entity "github.com/celpung/gocleanarch/domain/user/entity"
+	"github.com/celpung/gocleanarch/infrastructure/db/model"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
@@ -18,7 +19,7 @@ func SetupDB(dbname string) (*gorm.DB, error) {
 	}
 
 	// AutoMigrate creates the table based on the User struct
-	if err := db.AutoMigrate(&user_entity.User{}); err != nil {
+	if err := db.AutoMigrate(&model.User{}); err != nil {
 		return nil, fmt.Errorf("error migrating database: %v", err)
 	}
 

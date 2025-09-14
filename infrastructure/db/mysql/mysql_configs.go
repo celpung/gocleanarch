@@ -4,8 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	slider_entity "github.com/celpung/gocleanarch/domain/slider/entity"
-	user_entity "github.com/celpung/gocleanarch/domain/user/entity"
+	"github.com/celpung/gocleanarch/infrastructure/db/model"
 	"github.com/celpung/gocleanarch/infrastructure/environment"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -34,7 +33,7 @@ func CreateDatabaseIfNotExists() error {
 		return fmt.Errorf("failed to query database: %w", err)
 	}
 
-	// If the database doesn't exist, create it
+	// If the database doesn't exist, create new one
 	if count == 0 {
 		if _, err := sqlDB.Exec(fmt.Sprintf("CREATE DATABASE %s", dbName)); err != nil {
 			return fmt.Errorf("failed to create database: %w", err)
@@ -60,11 +59,11 @@ func ConnectDatabase() {
 	DB = db
 }
 
-func AutoMigrage() {
+func AutoMigrate() {
 	ConnectDatabase()
 	if migrateErr := DB.AutoMigrate(
-		&user_entity.User{},
-		&slider_entity.Slider{},
+		&model.User{},
+		&model.Slider{},
 	); migrateErr != nil {
 		panic(migrateErr)
 	}

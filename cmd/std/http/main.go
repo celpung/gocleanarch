@@ -15,7 +15,7 @@ func main() {
 	// Connect to the database and auto migrate
 	mysql.CreateDatabaseIfNotExists()
 	mysql.ConnectDatabase()
-	mysql.AutoMigrage()
+	mysql.AutoMigrate()
 
 	// Setup mode
 	mode := environment.Env.MODE

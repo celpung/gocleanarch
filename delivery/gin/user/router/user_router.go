@@ -1,9 +1,9 @@
 package user_router
 
 import (
-	repository_implementation "github.com/celpung/gocleanarch/application/user/repository_implementation"
-	usecase_implementation "github.com/celpung/gocleanarch/application/user/usecase_implementation"
-	delivery_implementation "github.com/celpung/gocleanarch/delivery/gin/user/implementation"
+	repository_impl "github.com/celpung/gocleanarch/application/user/impl/repository"
+	usecase_impl "github.com/celpung/gocleanarch/application/user/impl/usecase"
+	delivery_impl "github.com/celpung/gocleanarch/delivery/gin/user/impl"
 	"github.com/celpung/gocleanarch/delivery/gin/user/middleware"
 	"github.com/celpung/gocleanarch/infrastructure/auth"
 	"github.com/celpung/gocleanarch/infrastructure/db/mysql"
@@ -15,9 +15,9 @@ func Router(r *gin.RouterGroup) {
 	passwordService := auth.NewPasswordService()
 	jwtService := auth.NewJwtService()
 
-	repository := repository_implementation.NewUserRepository(mysql.DB)
-	usecase := usecase_implementation.NewUserUsecase(repository, passwordService, jwtService)
-	delivery := delivery_implementation.NewUserDelivery(usecase)
+	repository := repository_impl.NewUserRepository(mysql.DB)
+	usecase := usecase_impl.NewUserUsecase(repository, passwordService, jwtService)
+	delivery := delivery_impl.NewUserDelivery(usecase)
 
 	routes := r.Group("/users")
 	{

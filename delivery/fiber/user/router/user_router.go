@@ -1,9 +1,9 @@
 package user_router
 
 import (
-	repository_implementation "github.com/celpung/gocleanarch/application/user/repository_implementation"
-	usecase_implementation "github.com/celpung/gocleanarch/application/user/usecase_implementation"
-	delivery_implementation "github.com/celpung/gocleanarch/delivery/fiber/user/implementation"
+	repository_impl "github.com/celpung/gocleanarch/application/user/impl/repository"
+	usecase_impl "github.com/celpung/gocleanarch/application/user/impl/usecase"
+	delivery_impl "github.com/celpung/gocleanarch/delivery/fiber/user/impl"
 	middleware "github.com/celpung/gocleanarch/delivery/fiber/user/middleware"
 	"github.com/celpung/gocleanarch/infrastructure/auth"
 	"github.com/celpung/gocleanarch/infrastructure/db/mysql"
@@ -14,9 +14,9 @@ import (
 func RegisterUserRouter(router fiber.Router) {
 	passwordService := auth.NewPasswordService()
 	jwtService := auth.NewJwtService()
-	repo := repository_implementation.NewUserRepository(mysql.DB)
-	usecase := usecase_implementation.NewUserUsecase(repo, passwordService, jwtService)
-	delivery := delivery_implementation.NewUserDelivery(usecase)
+	repo := repository_impl.NewUserRepository(mysql.DB)
+	usecase := usecase_impl.NewUserUsecase(repo, passwordService, jwtService)
+	delivery := delivery_impl.NewUserDelivery(usecase)
 
 	user := router.Group("/users")
 	user.Post("/register", delivery.Register)

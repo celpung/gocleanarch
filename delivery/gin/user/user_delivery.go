@@ -2,7 +2,7 @@ package delivery
 
 import "github.com/gin-gonic/gin"
 
-type UserDeliveryInterface interface {
+type UserDelivery interface {
 	Register(c *gin.Context)
 	GetAllUserData(c *gin.Context)
 	UpdateUser(c *gin.Context)
