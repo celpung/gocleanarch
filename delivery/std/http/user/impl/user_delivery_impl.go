@@ -114,11 +114,9 @@ func (d *UserDeliveryStruct) GetAllUserData(w http.ResponseWriter, r *http.Reque
 		maxLimit     int64 = 100
 	)
 
-	// defaults
 	page := defaultPage
 	limit := defaultLimit
 
-	// parse query (jika ada)
 	if v := r.URL.Query().Get("page"); v != "" {
 		if pv, err := strconv.ParseInt(v, 10, 32); err == nil && pv >= 1 {
 			page = pv
@@ -129,7 +127,6 @@ func (d *UserDeliveryStruct) GetAllUserData(w http.ResponseWriter, r *http.Reque
 			limit = lv
 		}
 	}
-	// clamp limit
 	if limit > maxLimit {
 		limit = maxLimit
 	}
@@ -152,7 +149,6 @@ func (d *UserDeliveryStruct) GetAllUserData(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// safe ceil div; total_page = 0 kalau total=0
 	var totalPage int64
 	if limit > 0 {
 		totalPage = (total + limit - 1) / limit
