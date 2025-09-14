@@ -1,6 +1,9 @@
 package delivery_impl
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/celpung/gocleanarch/application/user/domain/entity"
 	"github.com/celpung/gocleanarch/application/user/domain/usecase"
 	"github.com/celpung/gocleanarch/delivery/dto"
@@ -89,25 +92,54 @@ func (d *UserDeliveryStruct) Login(c *fiber.Ctx) error {
 }
 
 func (d *UserDeliveryStruct) GetAllUserData(c *fiber.Ctx) error {
-	users, err := d.UserUsecase.Read()
+	const (
+		defaultPage  = 1
+		defaultLimit = 10
+		maxLimit     = 100
+	)
+
+	// Parse & normalize query
+	page, err := strconv.Atoi(c.Query("page", strconv.Itoa(defaultPage)))
+	if err != nil || page < 1 {
+		page = defaultPage
+	}
+	limit, err := strconv.Atoi(c.Query("limit", strconv.Itoa(defaultLimit)))
+	if err != nil || limit < 1 {
+		limit = defaultLimit
+	}
+	if limit > maxLimit {
+		limit = maxLimit
+	}
+
+	// Call usecase
+	users, total, err := d.UserUsecase.Read(uint(page), uint(limit))
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to fetch user data",
 			"error":   err.Error(),
 		})
 	}
 
-	resp, err := mapper.MapStructList[entity.User, dto.UserResponse](users)
+	// Map to DTO
+	res, err := mapper.MapStructList[entity.User, dto.UserResponse](users)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to map response list",
 			"error":   err.Error(),
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Success fetch user data",
-		"users":   resp,
+	// Ceil division for total pages
+	totalPage := (total + int64(limit) - 1) / int64(limit)
+
+	return c.Status(http.StatusOK).JSON(fiber.Map{
+		"message": "Users fetched successfully",
+		"data": fiber.Map{
+			"users":        res,
+			"count":        total,
+			"current_page": page,
+			"total_page":   totalPage,
+		},
 	})
 }
 

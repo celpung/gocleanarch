@@ -102,14 +102,18 @@ func TestReadAllUsers(t *testing.T) {
 	_, err = repo.Create(makeUser("Bob", "bob@example.com"))
 	require.NoError(t, err)
 
-	users, err := repo.Read()
+	users, total, err := repo.Read(1, 10)
 	require.NoError(t, err, "unexpected error during read")
+	require.Equal(t, int64(2), total, "total count harus 2")
 	require.Len(t, users, 2, "expected exactly two users")
 
-	// Validate presence without depending on order.
-	set := map[string]bool{users[0].Name: true, users[1].Name: true}
-	require.True(t, set["Maria"])
-	require.True(t, set["Bob"])
+	// Validasi presence tanpa bergantung urutan.
+	got := map[string]bool{}
+	for _, u := range users {
+		got[u.Name] = true
+	}
+	require.True(t, got["Maria"])
+	require.True(t, got["Bob"])
 }
 
 /*
@@ -227,18 +231,21 @@ func TestSoftDeleteUser(t *testing.T) {
 	saved, err := repo.Create(makeUser("Gina", "gina@example.com"))
 	require.NoError(t, err)
 
-	// Perform soft delete and expect subsequent reads by ID to fail with ErrRecordNotFound.
+	// Soft delete
 	err = repo.SoftDelete(saved.ID)
 	require.NoError(t, err, "unexpected error during soft delete")
 
+	// ReadByID harus ErrRecordNotFound (gunakan ErrorIs karena GORM bisa wrap error)
 	_, err = repo.ReadByID(saved.ID)
 	require.Error(t, err, "expected read by ID to fail after soft delete")
-	require.Equal(t, gorm.ErrRecordNotFound, err, "expected ErrRecordNotFound after soft delete")
+	require.ErrorIs(t, err, gorm.ErrRecordNotFound, "expected ErrRecordNotFound after soft delete")
 
-	// Ensure soft-deleted record is not returned in list operations.
-	users, err := repo.Read()
+	// Listing harus tidak menyertakan row yang terhapus
+	users, total, err := repo.Read(1, 10)
 	require.NoError(t, err, "unexpected error reading all users after soft delete")
 	for _, us := range users {
 		require.NotEqual(t, saved.ID, us.ID, "soft-deleted user must not be listed")
 	}
+	// Karena hanya 1 user awalnya, total seharusnya 0.
+	require.Equal(t, int64(0), total, "total should exclude soft-deleted rows")
 }

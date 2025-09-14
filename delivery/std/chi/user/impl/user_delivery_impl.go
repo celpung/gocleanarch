@@ -3,6 +3,7 @@ package delivery_impl
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/celpung/gocleanarch/application/user/domain/entity"
 	"github.com/celpung/gocleanarch/application/user/domain/usecase"
@@ -107,7 +108,33 @@ func (d *UserDeliveryStruct) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *UserDeliveryStruct) GetAllUserData(w http.ResponseWriter, r *http.Request) {
-	users, err := d.UserUsecase.Read()
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+
+	var page, limit int64
+	var err error
+
+	if pageStr != "" {
+		page, err = strconv.ParseInt(pageStr, 10, 32)
+		if err != nil || page < 0 {
+			writeJSON(w, http.StatusBadRequest, map[string]any{
+				"message": "Invalid page parameter",
+			})
+			return
+		}
+	}
+
+	if limitStr != "" {
+		limit, err = strconv.ParseInt(limitStr, 10, 32)
+		if err != nil || limit < 0 {
+			writeJSON(w, http.StatusBadRequest, map[string]any{
+				"message": "Invalid limit parameter",
+			})
+			return
+		}
+	}
+
+	users, total, err := d.UserUsecase.Read(uint(page), uint(limit))
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{
 			"message": "Failed to fetch user data",
@@ -116,7 +143,7 @@ func (d *UserDeliveryStruct) GetAllUserData(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	resp, err := mapper.MapStructList[entity.User, dto.UserResponse](users)
+	res, err := mapper.MapStructList[entity.User, dto.UserResponse](users)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{
 			"message": "Failed to map response list",
@@ -126,8 +153,13 @@ func (d *UserDeliveryStruct) GetAllUserData(w http.ResponseWriter, r *http.Reque
 	}
 
 	writeJSON(w, http.StatusOK, map[string]any{
-		"message": "Success fetch user data",
-		"users":   resp,
+		"message": "Users fetched successfully",
+		"data": map[string]any{
+			"users":        res,
+			"count":        total,
+			"current_page": page,
+			"total_page":   (total + int64(limit) - 1) / int64(limit),
+		},
 	})
 }
 

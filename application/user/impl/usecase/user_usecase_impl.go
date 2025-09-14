@@ -43,18 +43,18 @@ func (u *UserUsecaseStruct) Create(user *entity.User) (*entity.User, error) {
 	return &res, nil
 }
 
-func (u *UserUsecaseStruct) Read() ([]*entity.User, error) {
-	users, err := u.Repo.Read()
+func (u *UserUsecaseStruct) Read(page, limit uint) ([]*entity.User, int64, error) {
+	users, total, err := u.Repo.Read(page, limit)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	res, err := mapper.MapStructList[model.User, entity.User](users)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return res, nil
+	return res, total, nil
 }
 
 func (u *UserUsecaseStruct) ReadByID(userID string) (*entity.User, error) {

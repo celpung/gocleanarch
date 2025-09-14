@@ -18,13 +18,42 @@ func (r *UserRepositoryStruct) Create(m *model.User) (*model.User, error) {
 	return m, nil
 }
 
-func (r *UserRepositoryStruct) Read() ([]*model.User, error) {
-	var users []*model.User
-	if err := r.selectUserData(r.DB).Find(&users).Error; err != nil {
-		return nil, err
+func (r *UserRepositoryStruct) Read(page, limit uint) ([]*model.User, int64, error) {
+	var (
+		users []*model.User
+		total int64
+	)
+
+	const defaultLimit uint = 10
+	const maxLimit uint = 100
+
+	if page == 0 {
+		page = 1
+	}
+	if limit == 0 {
+		limit = defaultLimit
+	}
+	if limit > maxLimit {
+		limit = maxLimit
 	}
 
-	return users, nil
+	offset := int((page - 1) * limit)
+
+	base := r.DB.Model(&model.User{})
+
+	if err := base.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if err := r.selectUserData(base.Session(&gorm.Session{})).
+		Order("created_at DESC").
+		Offset(offset).
+		Limit(int(limit)).
+		Find(&users).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return users, total, nil
 }
 
 func (r *UserRepositoryStruct) ReadByID(userID string) (*model.User, error) {

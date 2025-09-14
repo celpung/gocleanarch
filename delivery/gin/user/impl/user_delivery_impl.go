@@ -2,6 +2,7 @@ package delivery_impl
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/celpung/gocleanarch/application/user/domain/entity"
 	"github.com/celpung/gocleanarch/application/user/domain/usecase"
@@ -49,19 +50,58 @@ func (d *UserDeliveryStruct) Register(c *gin.Context) {
 }
 
 func (d *UserDeliveryStruct) GetAllUserData(c *gin.Context) {
-	users, err := d.UserUsecase.Read()
+	const (
+		defaultPage  = 1
+		defaultLimit = 10
+		maxLimit     = 100
+	)
+
+	// Ambil & normalisasi query
+	page, _ := strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(defaultPage)))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", strconv.Itoa(defaultLimit)))
+	if page < 1 {
+		page = defaultPage
+	}
+	if limit < 1 {
+		limit = defaultLimit
+	}
+	if limit > maxLimit {
+		limit = maxLimit
+	}
+
+	// Call usecase
+	users, total, err := d.UserUsecase.Read(uint(page), uint(limit))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to fetch user data", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to fetch user data",
+			"error":   err.Error(),
+		})
 		return
 	}
 
-	resp, err := mapper.MapStructList[entity.User, dto.UserResponse](users)
+	// Map ke DTO
+	res, err := mapper.MapStructList[entity.User, dto.UserResponse](users)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to map response list", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to map response list",
+			"error":   err.Error(),
+		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Success fetch user data", "users": resp})
+	// Hitung total_page (ceil div)
+	totalPage := (total + int64(limit) - 1) / int64(limit)
+
+	// JSON shape sama seperti std/http kamu
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Users fetched successfully",
+		"data": gin.H{
+			"users":        res,
+			"count":        total,
+			"current_page": page,
+			"total_page":   totalPage,
+		},
+	})
 }
 
 func (d *UserDeliveryStruct) UpdateUser(c *gin.Context) {

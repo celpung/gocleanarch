@@ -137,11 +137,12 @@ func TestUsecase_Read_ReturnsEntitySlice(t *testing.T) {
 	_, err = uc.Create(makeEntityUser("Bob", "bob@ex.com", "pw", true, 1))
 	require.NoError(t, err)
 
-	list, err := uc.Read()
+	list, total, err := uc.Read(1, 0)
 	require.NoError(t, err)
+	require.EqualValues(t, 2, total)
 	require.Len(t, list, 2)
 
-	/* Repository Read uses a public projection that omits the password column. The mapped entities should therefore have an empty Password field. */
+	// mapping dari projection public: password harus kosong.
 	for _, e := range list {
 		require.Empty(t, e.Password, "password should be empty in projected entity")
 	}
