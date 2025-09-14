@@ -108,30 +108,30 @@ func (d *UserDeliveryStruct) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *UserDeliveryStruct) GetAllUserData(w http.ResponseWriter, r *http.Request) {
-	pageStr := r.URL.Query().Get("page")
-	limitStr := r.URL.Query().Get("limit")
+	const (
+		defaultPage  int64 = 1
+		defaultLimit int64 = 10
+		maxLimit     int64 = 100
+	)
 
-	var page, limit int64
-	var err error
+	// defaults
+	page := defaultPage
+	limit := defaultLimit
 
-	if pageStr != "" {
-		page, err = strconv.ParseInt(pageStr, 10, 32)
-		if err != nil || page < 0 {
-			writeJSON(w, http.StatusBadRequest, map[string]any{
-				"message": "Invalid page parameter",
-			})
-			return
+	// parse query (jika ada)
+	if v := r.URL.Query().Get("page"); v != "" {
+		if pv, err := strconv.ParseInt(v, 10, 32); err == nil && pv >= 1 {
+			page = pv
 		}
 	}
-
-	if limitStr != "" {
-		limit, err = strconv.ParseInt(limitStr, 10, 32)
-		if err != nil || limit < 0 {
-			writeJSON(w, http.StatusBadRequest, map[string]any{
-				"message": "Invalid limit parameter",
-			})
-			return
+	if v := r.URL.Query().Get("limit"); v != "" {
+		if lv, err := strconv.ParseInt(v, 10, 32); err == nil && lv >= 1 {
+			limit = lv
 		}
+	}
+	// clamp limit
+	if limit > maxLimit {
+		limit = maxLimit
 	}
 
 	users, total, err := d.UserUsecase.Read(uint(page), uint(limit))
@@ -152,13 +152,19 @@ func (d *UserDeliveryStruct) GetAllUserData(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	// safe ceil div; total_page = 0 kalau total=0
+	var totalPage int64
+	if limit > 0 {
+		totalPage = (total + limit - 1) / limit
+	}
+
 	writeJSON(w, http.StatusOK, map[string]any{
 		"message": "Users fetched successfully",
 		"data": map[string]any{
 			"users":        res,
 			"count":        total,
 			"current_page": page,
-			"total_page":   (total + int64(limit) - 1) / int64(limit),
+			"total_page":   totalPage,
 		},
 	})
 }
