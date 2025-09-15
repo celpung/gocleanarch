@@ -22,6 +22,7 @@ func RegisterUserRouter(router fiber.Router) {
 	user.Post("/register", delivery.Register)
 	user.Post("/login", delivery.Login)
 	user.Get("/", middleware.AuthMiddleware(role.Admin), delivery.GetAllUserData)
+	user.Get("/search", middleware.AuthMiddleware(role.Admin), delivery.SearchUser)
 	user.Patch("/", middleware.AuthMiddleware(role.Admin), delivery.UpdateUser)
 	user.Delete("/:user_id", middleware.AuthMiddleware(role.Admin), delivery.DeleteUser)
 }

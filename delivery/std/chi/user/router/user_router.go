@@ -31,6 +31,7 @@ func Router(r chi.Router) {
 			r.Use(middleware.AuthMiddleware(role.Admin))
 			r.Get("/", delivery.GetAllUserData)
 			r.Delete("/delete", delivery.DeleteUser)
+			r.Delete("/search", delivery.SearchUser)
 		})
 
 		// Protected routes (User)

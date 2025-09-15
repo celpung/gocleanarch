@@ -23,6 +23,7 @@ func Router() {
 	http.HandleFunc("/users/register", middleware.MethodHandler(http.MethodPost, delivery.Register))
 	http.HandleFunc("/users/login", middleware.MethodHandler(http.MethodPost, delivery.Login))
 	http.HandleFunc("/users", middleware.MethodHandler(http.MethodGet, middleware.AuthMiddleware(role.Admin, delivery.GetAllUserData)))
+	http.HandleFunc("/search", middleware.MethodHandler(http.MethodGet, middleware.AuthMiddleware(role.Admin, delivery.SearchUser)))
 	http.HandleFunc("/users/update", middleware.MethodHandler(http.MethodPatch, middleware.AuthMiddleware(role.User, delivery.UpdateUser)))
 	http.HandleFunc("/users/delete", middleware.MethodHandler(http.MethodDelete, middleware.AuthMiddleware(role.Admin, delivery.DeleteUser)))
 }

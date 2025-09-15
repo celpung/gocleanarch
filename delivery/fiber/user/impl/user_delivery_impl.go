@@ -143,6 +143,71 @@ func (d *UserDeliveryStruct) GetAllUserData(c *fiber.Ctx) error {
 	})
 }
 
+func (d *UserDeliveryStruct) SearchUser(c *fiber.Ctx) error {
+	const (
+		defaultPage  = 1
+		defaultLimit = 10
+		maxLimit     = 100
+	)
+
+	pageStr := c.Query("page", "")
+	limitStr := c.Query("limit", "")
+
+	page := defaultPage
+	limit := defaultLimit
+
+	if pageStr != "" {
+		if v, err := strconv.Atoi(pageStr); err != nil || v < 1 {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "Invalid page parameter",
+			})
+		} else {
+			page = v
+		}
+	}
+	if limitStr != "" {
+		if v, err := strconv.Atoi(limitStr); err != nil || v < 1 {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "Invalid limit parameter",
+			})
+		} else {
+			limit = v
+		}
+	}
+	if limit > maxLimit {
+		limit = maxLimit
+	}
+
+	keyword := c.Query("q", "")
+
+	users, total, err := d.UserUsecase.Search(uint(page), uint(limit), keyword)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Data not found",
+		})
+	}
+
+	res, err := mapper.MapStructList[entity.User, dto.UserResponse](users)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to map response list",
+			"error":   err.Error(),
+		})
+	}
+
+	totalPage := (total + int64(limit) - 1) / int64(limit)
+
+	return c.Status(http.StatusOK).JSON(fiber.Map{
+		"message": "Users fetched successfully",
+		"data": fiber.Map{
+			"users":        res,
+			"count":        total,
+			"current_page": page,
+			"total_page":   totalPage,
+		},
+	})
+}
+
 func (d *UserDeliveryStruct) UpdateUser(c *fiber.Ctx) error {
 	var req dto.UserUpdateRequest
 	if err := c.BodyParser(&req); err != nil {

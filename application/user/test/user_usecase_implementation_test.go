@@ -164,6 +164,26 @@ func TestUsecase_ReadByID_ReturnsSingleEntity(t *testing.T) {
 	require.Equal(t, "Charlie", got.Name)
 }
 
+func TestUsecase_Search_ReturnsEntitySlice(t *testing.T) {
+	uc, _ := newUsecase(t)
+
+	_, err := uc.Create(makeEntityUser("Maria", "maria@ex.com", "pw", true, 1))
+	require.NoError(t, err)
+	_, err = uc.Create(makeEntityUser("Bob", "bob@ex.com", "pw", true, 1))
+	require.NoError(t, err)
+
+	list, total, err := uc.Search(1, 10, "maria")
+	require.NoError(t, err)
+	require.EqualValues(t, 1, total)
+	require.Len(t, list, 1)
+
+	got := map[string]bool{}
+	for _, u := range list {
+		got[u.Name] = true
+	}
+	require.True(t, got["Maria"])
+}
+
 /*
 TestUsecase_Update_NoChanges_ReturnsCurrentWithPasswordBlank exercises the
 code path where no fields are provided for update. The use case should return

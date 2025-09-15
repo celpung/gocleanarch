@@ -104,6 +104,69 @@ func (d *UserDeliveryStruct) GetAllUserData(c *gin.Context) {
 	})
 }
 
+func (d *UserDeliveryStruct) SearchUser(c *gin.Context) {
+	const (
+		defaultPage  = 1
+		defaultLimit = 10
+		maxLimit     = 100
+	)
+
+	pageStr := c.Query("page")
+	limitStr := c.Query("limit")
+
+	page := defaultPage
+	limit := defaultLimit
+
+	if pageStr != "" {
+		if v, err := strconv.Atoi(pageStr); err != nil || v < 1 {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid page parameter"})
+			return
+		} else {
+			page = v
+		}
+	}
+	if limitStr != "" {
+		if v, err := strconv.Atoi(limitStr); err != nil || v < 1 {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid limit parameter"})
+			return
+		} else {
+			limit = v
+		}
+	}
+	if limit > maxLimit {
+		limit = maxLimit
+	}
+
+	keyword := c.Query("q")
+
+	users, total, err := d.UserUsecase.Search(uint(page), uint(limit), keyword)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Data not found"})
+		return
+	}
+
+	res, err := mapper.MapStructList[entity.User, dto.UserResponse](users)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to map response list",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	totalPage := (total + int64(limit) - 1) / int64(limit)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Users fetched successfully",
+		"data": gin.H{
+			"users":        res,
+			"count":        total,
+			"current_page": page,
+			"total_page":   totalPage,
+		},
+	})
+}
+
 func (d *UserDeliveryStruct) UpdateUser(c *gin.Context) {
 	var req dto.UserUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

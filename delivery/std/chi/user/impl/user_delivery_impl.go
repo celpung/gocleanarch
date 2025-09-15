@@ -168,6 +168,63 @@ func (d *UserDeliveryStruct) GetAllUserData(w http.ResponseWriter, r *http.Reque
 	})
 }
 
+func (d *UserDeliveryStruct) SearchUser(w http.ResponseWriter, r *http.Request) {
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+
+	var page, limit int64
+	var err error
+
+	if pageStr != "" {
+		page, err = strconv.ParseInt(pageStr, 10, 32)
+		if err != nil || page < 0 {
+			writeJSON(w, http.StatusBadRequest, map[string]any{
+				"message": "Invalid page parameter",
+			})
+			return
+		}
+	}
+
+	if limitStr != "" {
+		limit, err = strconv.ParseInt(limitStr, 10, 32)
+		if err != nil || limit < 0 {
+			writeJSON(w, http.StatusBadRequest, map[string]any{
+				"message": "Invalid limit parameter",
+			})
+			return
+		}
+	}
+
+	keyword := r.URL.Query().Get("q")
+
+	users, total, err := d.UserUsecase.Search(uint(page), uint(limit), keyword)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{
+			"message": "Data not found",
+		})
+		return
+	}
+
+	res, err := mapper.MapStructList[entity.User, dto.UserResponse](users)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{
+			"message": "Failed to map response list",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"message": "Users fetched successfully",
+		"data": map[string]any{
+			"users":        res,
+			"count":        total,
+			"current_page": page,
+			"total_page":   (total + int64(limit) - 1) / int64(limit),
+		},
+	})
+}
+
 func (d *UserDeliveryStruct) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var req dto.UserUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

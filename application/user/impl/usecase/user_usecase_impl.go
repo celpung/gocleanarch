@@ -18,66 +18,36 @@ type UserUsecaseStruct struct {
 }
 
 func (u *UserUsecaseStruct) Create(user *entity.User) (*entity.User, error) {
-	hashedPassword, err := u.PasswordService.HashPassword(user.Password)
+	hashed, err := u.PasswordService.HashPassword(user.Password)
 	if err != nil {
 		return nil, err
 	}
-
-	user.Password = hashedPassword
+	user.Password = hashed
 
 	var m model.User
 	if err := mapper.CopyTo(user, &m); err != nil {
 		return nil, err
 	}
 
-	usr, err := u.Repo.Create(&m)
+	created, err := u.Repo.Create(&m)
 	if err != nil {
 		return nil, err
 	}
 
-	var res entity.User
-	if err := mapper.CopyTo(usr, &res); err != nil {
+	var out entity.User
+	if err := mapper.CopyTo(created, &out); err != nil {
 		return nil, err
 	}
 
-	return &res, nil
-}
-
-func (u *UserUsecaseStruct) Read(page, limit uint) ([]*entity.User, int64, error) {
-	users, total, err := u.Repo.Read(page, limit)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	res, err := mapper.MapStructList[model.User, entity.User](users)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return res, total, nil
-}
-
-func (u *UserUsecaseStruct) ReadByID(userID string) (*entity.User, error) {
-	user, err := u.Repo.ReadByID(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	var res entity.User
-	if err := mapper.CopyTo(user, &res); err != nil {
-		return nil, err
-	}
-
-	return &res, nil
+	return &out, nil
 }
 
 func (u *UserUsecaseStruct) Update(payload *entity.UpdateUserPayload) (*entity.User, error) {
-	_, err := u.Repo.ReadByID(payload.ID)
-	if err != nil {
+	if _, err := u.Repo.ReadByID(payload.ID); err != nil {
 		return nil, err
 	}
 
-	changes := make(map[string]interface{})
+	changes := make(map[string]any)
 
 	if payload.Name != nil {
 		changes["name"] = *payload.Name
@@ -121,7 +91,7 @@ func (u *UserUsecaseStruct) Update(payload *entity.UpdateUserPayload) (*entity.U
 	if err := mapper.CopyTo(updated, &res); err != nil {
 		return nil, err
 	}
-
+	res.Password = ""
 	return &res, nil
 }
 
@@ -129,36 +99,74 @@ func (u *UserUsecaseStruct) SoftDelete(userID string) error {
 	return u.Repo.SoftDelete(userID)
 }
 
+func (u *UserUsecaseStruct) Read(page, limit uint) ([]*entity.User, int64, error) {
+	ms, total, err := u.Repo.Read(page, limit)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	es := make([]*entity.User, len(ms))
+	for i := range ms {
+		es[i] = &entity.User{}
+		_ = mapper.CopyTo(ms[i], es[i])
+		es[i].Password = ""
+	}
+	return es, total, nil
+}
+
+func (u *UserUsecaseStruct) ReadByID(userID string) (*entity.User, error) {
+	m, err := u.Repo.ReadByID(userID)
+	if err != nil {
+		return nil, err
+	}
+	var out entity.User
+	_ = mapper.CopyTo(m, &out)
+	out.Password = ""
+	return &out, nil
+}
+
+func (u *UserUsecaseStruct) Search(page, limit uint, keyword string) ([]*entity.User, int64, error) {
+	ms, total, err := u.Repo.Search(page, limit, keyword)
+	if err != nil {
+		return nil, 0, err
+	}
+	es := make([]*entity.User, len(ms))
+	for i := range ms {
+		es[i] = &entity.User{}
+		_ = mapper.CopyTo(ms[i], es[i])
+		es[i].Password = ""
+	}
+	return es, total, nil
+}
+
 func (u *UserUsecaseStruct) Login(email, password string) (string, error) {
-	user, err := u.Repo.ReadByEmailPrivate(email)
+	m, err := u.Repo.ReadByEmailPrivate(email)
 	if err != nil {
 		return "", err
 	}
-
-	if !user.Active {
+	if !m.Active {
 		return "", errors.New("user not active")
 	}
-
-	if err := u.PasswordService.VerifyPassword(user.Password, password); err != nil {
+	if err := u.PasswordService.VerifyPassword(m.Password, password); err != nil {
 		return "", errors.New("wrong password")
 	}
 
-	var res entity.User
-	if err := mapper.CopyTo(user, &res); err != nil {
+	var e entity.User
+	if err := mapper.CopyTo(m, &e); err != nil {
 		return "", err
 	}
+	e.Password = ""
 
-	token, err := u.JWTService.JWTGenerator(res)
+	token, err := u.JWTService.JWTGenerator(e)
 	if err != nil {
 		return "", err
 	}
-
 	return token, nil
 }
 
-func NewUserUsecase(repository repository.UserRepository, passwordService *auth.PasswordService, jwtService *auth.JwtService) usecase.UserUsecase {
+func NewUserUsecase(repo repository.UserRepository, passwordService *auth.PasswordService, jwtService *auth.JwtService) usecase.UserUsecase {
 	return &UserUsecaseStruct{
-		Repo:            repository,
+		Repo:            repo,
 		PasswordService: passwordService,
 		JWTService:      jwtService,
 	}

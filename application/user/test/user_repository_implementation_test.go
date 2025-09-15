@@ -168,6 +168,27 @@ func TestReadByEmailForLogin(t *testing.T) {
 	require.Equal(t, "password123", got.Password, "login read should include password field")
 }
 
+func TestSearchUsers(t *testing.T) {
+	db := setupTestDB(t)
+	repo := repository_impl.NewUserRepository(db)
+
+	_, err := repo.Create(makeUser("Maria", "maria@example.com"))
+	require.NoError(t, err)
+	_, err = repo.Create(makeUser("Bob", "bob@example.com"))
+	require.NoError(t, err)
+
+	users, total, err := repo.Search(1, 10, "maria")
+	require.NoError(t, err, "unexpected error during read")
+	require.Equal(t, int64(1), total, "total count harus 1")
+	require.Len(t, users, 1, "expected exactly two users")
+
+	got := map[string]bool{}
+	for _, u := range users {
+		got[u.Name] = true
+	}
+	require.True(t, got["Maria"])
+}
+
 /*
 TestUpdateUser_StructUpdates verifies updates using struct-based Updates.
 Note that Updates(struct) does not write zero values; use UpdateFields(map) when zero values must be persisted.
