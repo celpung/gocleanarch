@@ -6,9 +6,9 @@ import (
 	repository_impl "github.com/celpung/gocleanarch/application/user/impl/repository"
 	usecase_impl "github.com/celpung/gocleanarch/application/user/impl/usecase"
 	delivery_impl "github.com/celpung/gocleanarch/delivery/std/chi/user/impl"
+	"github.com/celpung/gocleanarch/delivery/std/chi/user/middleware"
 	"github.com/celpung/gocleanarch/infrastructure/auth"
 	"github.com/celpung/gocleanarch/infrastructure/db/mysql"
-	"github.com/celpung/gocleanarch/infrastructure/middleware"
 	"github.com/celpung/gocleanarch/infrastructure/role"
 )
 

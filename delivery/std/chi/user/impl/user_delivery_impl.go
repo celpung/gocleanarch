@@ -25,6 +25,7 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 
 func (d *UserDeliveryStruct) Register(w http.ResponseWriter, r *http.Request) {
 	var req dto.UserCreateRequest
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]any{
 			"message": "Invalid input data",
@@ -76,6 +77,7 @@ func (d *UserDeliveryStruct) Register(w http.ResponseWriter, r *http.Request) {
 
 func (d *UserDeliveryStruct) Login(w http.ResponseWriter, r *http.Request) {
 	var req dto.UserLoginRequest
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]any{
 			"message": "Invalid login data",
@@ -227,6 +229,7 @@ func (d *UserDeliveryStruct) SearchUser(w http.ResponseWriter, r *http.Request) 
 
 func (d *UserDeliveryStruct) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var req dto.UserUpdateRequest
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]any{
 			"message": "Invalid update data",
@@ -278,6 +281,7 @@ func (d *UserDeliveryStruct) UpdateUser(w http.ResponseWriter, r *http.Request) 
 
 func (d *UserDeliveryStruct) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
+
 	if userID == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]any{
 			"message": "Missing user_id parameter",
