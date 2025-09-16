@@ -9,7 +9,6 @@ import (
 	"github.com/celpung/gocleanarch/delivery/std/chi/user/middleware"
 	"github.com/celpung/gocleanarch/infrastructure/auth"
 	"github.com/celpung/gocleanarch/infrastructure/db/mysql"
-	"github.com/celpung/gocleanarch/infrastructure/role"
 )
 
 // Router mendaftarkan semua route user ke router utama
@@ -26,9 +25,9 @@ func Router(r chi.Router) {
 		r.Post("/register", delivery.Register)
 		r.Post("/login", delivery.Login)
 
-		// Protected routes (Admin)
+		// Protected routes (Admin and super)
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.AuthMiddleware(role.Admin))
+			r.Use(middleware.AuthMiddleware(middleware.Admin, middleware.Super))
 			r.Get("/", delivery.GetAllUserData)
 			r.Delete("/delete", delivery.DeleteUser)
 			r.Delete("/search", delivery.SearchUser)
@@ -36,7 +35,7 @@ func Router(r chi.Router) {
 
 		// Protected routes (User)
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.AuthMiddleware(role.User))
+			r.Use(middleware.AuthMiddleware(middleware.User))
 			r.Patch("/update", delivery.UpdateUser)
 		})
 	})

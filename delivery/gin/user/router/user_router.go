@@ -7,7 +7,6 @@ import (
 	"github.com/celpung/gocleanarch/delivery/gin/user/middleware"
 	"github.com/celpung/gocleanarch/infrastructure/auth"
 	"github.com/celpung/gocleanarch/infrastructure/db/mysql"
-	"github.com/celpung/gocleanarch/infrastructure/role"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,8 +22,8 @@ func Router(r *gin.RouterGroup) {
 	{
 		routes.POST("/register", delivery.Register)
 		routes.POST("/login", delivery.Login)
-		routes.GET("", middleware.AuthMiddleware(role.Admin), delivery.GetAllUserData)
-		routes.GET("/search", middleware.AuthMiddleware(role.Admin), delivery.SearchUser)
-		routes.PATCH("", middleware.AuthMiddleware(role.User), delivery.UpdateUser)
+		routes.GET("", middleware.AuthMiddleware(middleware.Admin, middleware.Super), delivery.GetAllUserData)
+		routes.GET("/search", middleware.AuthMiddleware(middleware.Admin), delivery.SearchUser)
+		routes.PATCH("", middleware.AuthMiddleware(middleware.User), delivery.UpdateUser)
 	}
 }

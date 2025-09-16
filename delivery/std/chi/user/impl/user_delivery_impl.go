@@ -2,6 +2,7 @@ package delivery_impl
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/celpung/gocleanarch/application/user/domain/usecase"
 	"github.com/celpung/gocleanarch/delivery/dto"
 	delivery "github.com/celpung/gocleanarch/delivery/std/chi/user"
+	"github.com/celpung/gocleanarch/delivery/std/chi/user/middleware"
 	"github.com/celpung/gocleanarch/infrastructure/mapper"
 	"github.com/celpung/gocleanarch/infrastructure/validation"
 )
@@ -110,6 +112,16 @@ func (d *UserDeliveryStruct) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *UserDeliveryStruct) GetAllUserData(w http.ResponseWriter, r *http.Request) {
+	// whos do this action ?
+	id, ok := middleware.UserIDFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// the one who with this id
+	fmt.Println(id)
+
 	const (
 		defaultPage  int64 = 1
 		defaultLimit int64 = 10
