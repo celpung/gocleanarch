@@ -1,4 +1,4 @@
-package file
+package checker
 
 import (
 	"log"
@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-// Helper function to check if the uploaded file is an image
+// Helper function to check file type
 func FileChecker(fileHeader *multipart.FileHeader) (bool, error) {
 	// Open the uploaded file
 	file, err := fileHeader.Open()
@@ -29,7 +29,7 @@ func FileChecker(fileHeader *multipart.FileHeader) (bool, error) {
 		return true, nil
 	}
 
-	// Optionally, you can log the invalid content type
+	// Optionally, log the invalid content type
 	log.Printf("Invalid file type detected: %s", contentType)
 
 	return false, nil

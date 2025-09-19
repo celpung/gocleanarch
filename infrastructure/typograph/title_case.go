@@ -1,4 +1,4 @@
-package text
+package typograph
 
 import (
 	"strings"

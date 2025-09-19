@@ -21,21 +21,18 @@ func Router(r chi.Router) {
 	delivery := delivery_impl.NewUserDelivery(usecase)
 
 	r.Route("/users", func(r chi.Router) {
-		// Public routes
 		r.Post("/register", delivery.Register)
 		r.Post("/login", delivery.Login)
 
-		// Protected routes (Admin and super)
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.AuthMiddleware(middleware.Admin, middleware.Super))
 			r.Get("/", delivery.GetAllUserData)
-			r.Delete("/delete", delivery.DeleteUser)
-			r.Delete("/search", delivery.SearchUser)
+			r.Delete("/{id}", delivery.DeleteUser)
+			r.Get("/search", delivery.SearchUser)
 		})
 
-		// Protected routes (User)
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.AuthMiddleware(middleware.User))
+			r.Use(middleware.AuthMiddleware(middleware.User, middleware.Admin, middleware.Super))
 			r.Patch("/update", delivery.UpdateUser)
 		})
 	})

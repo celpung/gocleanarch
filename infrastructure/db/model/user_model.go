@@ -12,7 +12,7 @@ type User struct {
 	Email     string         `gorm:"unique"`
 	Password  string         `gorm:"not null"`
 	Active    bool           `gorm:"default:0"`
-	Role      uint           `gorm:"not null;default:1"`
+	Role      string         `gorm:"not null;default:1"`
 	CreatedAt time.Time      `gorm:"autoCreateTime"`
 	UpdatedAt time.Time      `gorm:"autoUpdateTime"`
 	DeletedAt gorm.DeletedAt `gorm:"index"`

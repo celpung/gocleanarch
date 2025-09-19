@@ -25,5 +25,6 @@ func Router(r *gin.RouterGroup) {
 		routes.GET("", middleware.AuthMiddleware(middleware.Admin, middleware.Super), delivery.GetAllUserData)
 		routes.GET("/search", middleware.AuthMiddleware(middleware.Admin), delivery.SearchUser)
 		routes.PATCH("", middleware.AuthMiddleware(middleware.User), delivery.UpdateUser)
+		routes.DELETE("/{id}", middleware.AuthMiddleware(middleware.User), delivery.DeleteUser)
 	}
 }

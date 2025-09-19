@@ -89,13 +89,13 @@ func newUsecase(t *testing.T) (*usecase_impl.UserUsecaseStruct, *gorm.DB) {
 helper user entity constructor for use case input. Password is plain here;
 hashing is performed within the use case Create method.
 */
-func makeEntityUser(name, email, plainPassword string, active bool, role uint) *entity.User {
+func makeEntityUser(name, email, plainPassword, role string, active bool) *entity.User {
 	return &entity.User{
 		Name:     name,
 		Email:    email,
 		Password: plainPassword,
-		Active:   active,
 		Role:     role,
+		Active:   active,
 	}
 }
 
@@ -111,7 +111,7 @@ hashes the incoming password and persists the user record.
 func TestUsecase_Create_ShouldHashPasswordAndPersist(t *testing.T) {
 	uc, _ := newUsecase(t)
 
-	in := makeEntityUser("Alice", "alice@ex.com", "secret123", true, 1)
+	in := makeEntityUser("Alice", "alice@ex.com", "secret123", "SUPER", true)
 	out, err := uc.Create(in)
 	require.NoError(t, err, "create should not error")
 	require.NotEmpty(t, out.ID, "expected ID to be set after create")
@@ -132,9 +132,9 @@ mapped from the repository projection and does not include sensitive fields.
 func TestUsecase_Read_ReturnsEntitySlice(t *testing.T) {
 	uc, _ := newUsecase(t)
 
-	_, err := uc.Create(makeEntityUser("Maria", "maria@ex.com", "pw", true, 1))
+	_, err := uc.Create(makeEntityUser("Maria", "maria@ex.com", "pw", "SUPER", true))
 	require.NoError(t, err)
-	_, err = uc.Create(makeEntityUser("Bob", "bob@ex.com", "pw", true, 1))
+	_, err = uc.Create(makeEntityUser("Bob", "bob@ex.com", "pw", "SUPER", true))
 	require.NoError(t, err)
 
 	list, total, err := uc.Read(1, 0)
@@ -155,7 +155,7 @@ repository model to the entity type correctly.
 func TestUsecase_ReadByID_ReturnsSingleEntity(t *testing.T) {
 	uc, _ := newUsecase(t)
 
-	created, err := uc.Create(makeEntityUser("Charlie", "charlie@ex.com", "pw", true, 2))
+	created, err := uc.Create(makeEntityUser("Charlie", "charlie@ex.com", "pw", "ADMIN", true))
 	require.NoError(t, err)
 
 	got, err := uc.ReadByID(created.ID)
@@ -167,9 +167,9 @@ func TestUsecase_ReadByID_ReturnsSingleEntity(t *testing.T) {
 func TestUsecase_Search_ReturnsEntitySlice(t *testing.T) {
 	uc, _ := newUsecase(t)
 
-	_, err := uc.Create(makeEntityUser("Maria", "maria@ex.com", "pw", true, 1))
+	_, err := uc.Create(makeEntityUser("Maria", "maria@ex.com", "pw", "SUPER", true))
 	require.NoError(t, err)
-	_, err = uc.Create(makeEntityUser("Bob", "bob@ex.com", "pw", true, 1))
+	_, err = uc.Create(makeEntityUser("Bob", "bob@ex.com", "pw", "SUPER", true))
 	require.NoError(t, err)
 
 	list, total, err := uc.Search(1, 10, "maria")
@@ -192,7 +192,7 @@ the current user state with the password sanitized.
 func TestUsecase_Update_NoChanges_ReturnsCurrentWithPasswordBlank(t *testing.T) {
 	uc, _ := newUsecase(t)
 
-	created, err := uc.Create(makeEntityUser("Diana", "diana@ex.com", "pw", true, 3))
+	created, err := uc.Create(makeEntityUser("Diana", "diana@ex.com", "pw", "USER", true))
 	require.NoError(t, err)
 
 	out, err := uc.Update(&entity.UpdateUserPayload{ID: created.ID})
@@ -208,14 +208,14 @@ writes zero values when requested through pointer fields in the payload.
 func TestUsecase_Update_WriteZeroValues(t *testing.T) {
 	uc, _ := newUsecase(t)
 
-	created, err := uc.Create(makeEntityUser("Eve", "eve@ex.com", "pw", true, 7))
+	created, err := uc.Create(makeEntityUser("Eve", "eve@ex.com", "pw", "USER", true))
 	require.NoError(t, err)
 
 	payload := &entity.UpdateUserPayload{
 		ID:     created.ID,
 		Name:   ptrString("Eve Zero"),
 		Active: ptrBool(false), // request setting to false
-		Role:   ptrUint(0),     // request setting to zero
+		Role:   ptrString("USER"),
 	}
 	out, err := uc.Update(payload)
 	require.NoError(t, err)
@@ -226,7 +226,7 @@ func TestUsecase_Update_WriteZeroValues(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "Eve Zero", got.Name)
 	require.False(t, got.Active)
-	require.EqualValues(t, 0, got.Role)
+	require.EqualValues(t, "USER", got.Role)
 }
 
 /*
@@ -235,7 +235,7 @@ TestUsecase_SoftDelete verifies that SoftDelete masks the record from subsequent
 func TestUsecase_SoftDelete(t *testing.T) {
 	uc, _ := newUsecase(t)
 
-	created, err := uc.Create(makeEntityUser("Frank", "frank@ex.com", "pw", true, 1))
+	created, err := uc.Create(makeEntityUser("Frank", "frank@ex.com", "pw", "SUPER", true))
 	require.NoError(t, err)
 
 	err = uc.SoftDelete(created.ID)
@@ -252,7 +252,7 @@ fails prior to any token generation and returns a descriptive error.
 func TestUsecase_Login_WrongPassword(t *testing.T) {
 	uc, _ := newUsecase(t)
 
-	_, err := uc.Create(makeEntityUser("Greg", "greg@ex.com", "right-pass", true, 1))
+	_, err := uc.Create(makeEntityUser("Greg", "greg@ex.com", "right-pass", "SUPER", true))
 	require.NoError(t, err)
 
 	token, err := uc.Login("greg@ex.com", "wrong-pass")
@@ -268,7 +268,7 @@ inactive accounts prior to password verification or token generation.
 func TestUsecase_Login_InactiveUser(t *testing.T) {
 	uc, _ := newUsecase(t)
 
-	created, err := uc.Create(makeEntityUser("Hanna", "hanna@ex.com", "pw", true, 1))
+	created, err := uc.Create(makeEntityUser("Hanna", "hanna@ex.com", "pw", "SUPER", true))
 	require.NoError(t, err)
 
 	/* Mark the user inactive using the repository partial update. */

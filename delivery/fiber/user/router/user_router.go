@@ -23,5 +23,5 @@ func RegisterUserRouter(router fiber.Router) {
 	user.Get("/", middleware.AuthMiddleware(middleware.Admin, middleware.Super), delivery.GetAllUserData)
 	user.Get("/search", middleware.AuthMiddleware(middleware.Admin), delivery.SearchUser)
 	user.Patch("/", middleware.AuthMiddleware(middleware.Admin), delivery.UpdateUser)
-	user.Delete("/:user_id", middleware.AuthMiddleware(middleware.Admin), delivery.DeleteUser)
+	user.Delete("/:id", middleware.AuthMiddleware(middleware.Admin), delivery.DeleteUser)
 }

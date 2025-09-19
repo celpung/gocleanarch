@@ -8,7 +8,7 @@ type User struct {
 	Email     string
 	Password  string
 	Active    bool
-	Role      uint
+	Role      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
@@ -20,5 +20,5 @@ type UpdateUserPayload struct {
 	Email    *string
 	Password *string
 	Active   *bool
-	Role     *uint
+	Role     *string
 }

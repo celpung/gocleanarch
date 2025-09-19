@@ -4,7 +4,7 @@ type UserCreateRequest struct {
 	Name     string `json:"name" binding:"required" validate:"required"`
 	Email    string `json:"email" binding:"required,email" validate:"required,email"`
 	Password string `json:"password" binding:"required,min=8" validate:"required,min=8"`
-	Role     uint   `json:"role" binding:"required" validate:"required"`
+	Role     string `json:"role" binding:"required" validate:"required"`
 }
 
 type UserUpdateRequest struct {
@@ -13,7 +13,7 @@ type UserUpdateRequest struct {
 	Email    *string `json:"email" binding:"omitempty,email" validate:"omitempty,email"`
 	Password *string `json:"password" binding:"omitempty,min=8" validate:"omitempty,min=8"`
 	Active   *bool   `json:"active" binding:"omitempty" validate:"omitempty"`
-	Role     *uint   `json:"role" binding:"omitempty" validate:"omitempty"`
+	Role     *string `json:"role" binding:"omitempty" validate:"omitempty"`
 }
 
 type UserLoginRequest struct {
@@ -26,5 +26,5 @@ type UserResponse struct {
 	Name   string `json:"name"`
 	Email  string `json:"email"`
 	Active bool   `json:"active"`
-	Role   uint   `json:"role"`
+	Role   string `json:"role"`
 }

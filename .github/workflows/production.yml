@@ -64,14 +64,4 @@ jobs:
               -e SMTP_EMAIL_SENDER=${{ secrets.SMTP_EMAIL_SENDER }} \
               -e APP_NAME=${{ env.APP_NAME }} \
               ${{ env.IMAGE_NAME }}
-
-      - name: Clean up unused Docker images
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
-          port: ${{ secrets.VPS_SSH_PORT }}
-          script: |
-            docker image prune -a -f
         

@@ -254,7 +254,7 @@ func (d *UserDeliveryStruct) UpdateUser(c *fiber.Ctx) error {
 }
 
 func (d *UserDeliveryStruct) DeleteUser(c *fiber.Ctx) error {
-	userID := c.Params("user_id")
+	userID := c.Params("id")
 
 	if err := d.UserUsecase.SoftDelete(userID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

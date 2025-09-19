@@ -69,7 +69,7 @@ func makeUser(name, email string) *model.User {
 		Email:    email,
 		Password: "password123",
 		Active:   true,
-		Role:     1,
+		Role:     "ADMIN",
 	}
 }
 
@@ -227,8 +227,8 @@ func TestUpdateFields_AllowsZeroValues(t *testing.T) {
 	require.NoError(t, err)
 
 	updated, err := repo.UpdateFields(saved.ID, map[string]interface{}{
-		"active": false,   // Zero-value boolean should be persisted.
-		"role":   uint(0), // Zero-value integer should be persisted.
+		"active": false,
+		"role":   "",
 		"name":   "Frank Zeroed",
 	})
 	require.NoError(t, err, "unexpected error during map-based update")
@@ -237,7 +237,7 @@ func TestUpdateFields_AllowsZeroValues(t *testing.T) {
 	got, err := repo.ReadByID(saved.ID)
 	require.NoError(t, err)
 	require.False(t, got.Active, "expected active to be false after update")
-	require.EqualValues(t, 0, got.Role, "expected role to be zero after update")
+	require.EqualValues(t, "", got.Role, "expected role to be zero after update")
 	require.Equal(t, "Frank Zeroed", got.Name)
 }
 

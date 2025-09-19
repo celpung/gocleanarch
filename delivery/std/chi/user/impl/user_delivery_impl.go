@@ -13,6 +13,7 @@ import (
 	"github.com/celpung/gocleanarch/delivery/std/chi/user/middleware"
 	"github.com/celpung/gocleanarch/infrastructure/mapper"
 	"github.com/celpung/gocleanarch/infrastructure/validation"
+	"github.com/go-chi/chi/v5"
 )
 
 type UserDeliveryStruct struct {
@@ -132,7 +133,7 @@ func (d *UserDeliveryStruct) GetAllUserData(w http.ResponseWriter, r *http.Reque
 	page := defaultPage
 	limit := defaultLimit
 
-	// parse query (jika ada)
+	// parse query
 	if v := r.URL.Query().Get("page"); v != "" {
 		if pv, err := strconv.ParseInt(v, 10, 32); err == nil && pv >= 1 {
 			page = pv
@@ -292,11 +293,11 @@ func (d *UserDeliveryStruct) UpdateUser(w http.ResponseWriter, r *http.Request) 
 }
 
 func (d *UserDeliveryStruct) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	userID := r.URL.Query().Get("user_id")
+	userID := chi.URLParam(r, "id")
 
 	if userID == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]any{
-			"message": "Missing user_id parameter",
+			"message": "Missing id parameter",
 		})
 		return
 	}

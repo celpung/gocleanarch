@@ -9,6 +9,7 @@ import (
 	"github.com/celpung/gocleanarch/infrastructure/auth"
 	"github.com/celpung/gocleanarch/infrastructure/db/model"
 	"github.com/celpung/gocleanarch/infrastructure/mapper"
+	"github.com/celpung/gocleanarch/infrastructure/typograph"
 )
 
 type UserUsecaseStruct struct {
@@ -22,6 +23,7 @@ func (u *UserUsecaseStruct) Create(user *entity.User) (*entity.User, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	user.Password = hashed
 
 	var m model.User
@@ -52,9 +54,11 @@ func (u *UserUsecaseStruct) Update(payload *entity.UpdateUserPayload) (*entity.U
 	if payload.Name != nil {
 		changes["name"] = *payload.Name
 	}
+
 	if payload.Email != nil {
 		changes["email"] = *payload.Email
 	}
+
 	if payload.Password != nil {
 		hashed, err := u.PasswordService.HashPassword(*payload.Password)
 		if err != nil {
@@ -62,9 +66,11 @@ func (u *UserUsecaseStruct) Update(payload *entity.UpdateUserPayload) (*entity.U
 		}
 		changes["password"] = hashed
 	}
+
 	if payload.Active != nil {
 		changes["active"] = *payload.Active
 	}
+
 	if payload.Role != nil {
 		changes["role"] = *payload.Role
 	}
@@ -74,11 +80,12 @@ func (u *UserUsecaseStruct) Update(payload *entity.UpdateUserPayload) (*entity.U
 		if err != nil {
 			return nil, err
 		}
+
 		var out entity.User
 		if err := mapper.CopyTo(cur, &out); err != nil {
 			return nil, err
 		}
-		out.Password = ""
+
 		return &out, nil
 	}
 
@@ -91,7 +98,7 @@ func (u *UserUsecaseStruct) Update(payload *entity.UpdateUserPayload) (*entity.U
 	if err := mapper.CopyTo(updated, &res); err != nil {
 		return nil, err
 	}
-	res.Password = ""
+
 	return &res, nil
 }
 
@@ -109,8 +116,8 @@ func (u *UserUsecaseStruct) Read(page, limit uint) ([]*entity.User, int64, error
 	for i := range ms {
 		es[i] = &entity.User{}
 		_ = mapper.CopyTo(ms[i], es[i])
-		es[i].Password = ""
 	}
+
 	return es, total, nil
 }
 
@@ -119,9 +126,13 @@ func (u *UserUsecaseStruct) ReadByID(userID string) (*entity.User, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	var out entity.User
 	_ = mapper.CopyTo(m, &out)
-	out.Password = ""
+
+	titleCased := typograph.ToTitleCase(out.Name)
+	out.Name = titleCased
+
 	return &out, nil
 }
 
@@ -130,12 +141,13 @@ func (u *UserUsecaseStruct) Search(page, limit uint, keyword string) ([]*entity.
 	if err != nil {
 		return nil, 0, err
 	}
+
 	es := make([]*entity.User, len(ms))
 	for i := range ms {
 		es[i] = &entity.User{}
 		_ = mapper.CopyTo(ms[i], es[i])
-		es[i].Password = ""
 	}
+
 	return es, total, nil
 }
 
@@ -144,9 +156,11 @@ func (u *UserUsecaseStruct) Login(email, password string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	if !m.Active {
 		return "", errors.New("user not active")
 	}
+
 	if err := u.PasswordService.VerifyPassword(m.Password, password); err != nil {
 		return "", errors.New("wrong password")
 	}
@@ -155,12 +169,12 @@ func (u *UserUsecaseStruct) Login(email, password string) (string, error) {
 	if err := mapper.CopyTo(m, &e); err != nil {
 		return "", err
 	}
-	e.Password = ""
 
 	token, err := u.JWTService.JWTGenerator(e)
 	if err != nil {
 		return "", err
 	}
+
 	return token, nil
 }
 

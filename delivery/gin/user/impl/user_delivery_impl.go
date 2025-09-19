@@ -200,7 +200,7 @@ func (d *UserDeliveryStruct) UpdateUser(c *gin.Context) {
 }
 
 func (d *UserDeliveryStruct) DeleteUser(c *gin.Context) {
-	userID := c.Param("user_id")
+	userID := c.Param("id")
 
 	if err := d.UserUsecase.SoftDelete(userID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to delete user", "error": err.Error()})
