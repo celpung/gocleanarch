@@ -44,6 +44,34 @@ func (u *UserUsecaseStruct) Create(user *entity.User) (*entity.User, error) {
 	return &out, nil
 }
 
+func (u *UserUsecaseStruct) Read(page, limit uint) ([]*entity.User, int64, error) {
+	ms, total, err := u.Repo.Read(page, limit)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	es, err := mapper.MapStructList[model.User, entity.User](ms)
+	if err != nil {
+		return nil, 0, err
+	}
+	return es, total, nil
+}
+
+func (u *UserUsecaseStruct) ReadByID(userID string) (*entity.User, error) {
+	m, err := u.Repo.ReadByID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var out entity.User
+	_ = mapper.CopyTo(m, &out)
+
+	titleCased := typograph.ToTitleCase(out.Name)
+	out.Name = titleCased
+
+	return &out, nil
+}
+
 func (u *UserUsecaseStruct) Update(payload *entity.UpdateUserPayload) (*entity.User, error) {
 	if _, err := u.Repo.ReadByID(payload.ID); err != nil {
 		return nil, err
@@ -106,48 +134,16 @@ func (u *UserUsecaseStruct) SoftDelete(userID string) error {
 	return u.Repo.SoftDelete(userID)
 }
 
-func (u *UserUsecaseStruct) Read(page, limit uint) ([]*entity.User, int64, error) {
-	ms, total, err := u.Repo.Read(page, limit)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	es := make([]*entity.User, len(ms))
-	for i := range ms {
-		es[i] = &entity.User{}
-		_ = mapper.CopyTo(ms[i], es[i])
-	}
-
-	return es, total, nil
-}
-
-func (u *UserUsecaseStruct) ReadByID(userID string) (*entity.User, error) {
-	m, err := u.Repo.ReadByID(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	var out entity.User
-	_ = mapper.CopyTo(m, &out)
-
-	titleCased := typograph.ToTitleCase(out.Name)
-	out.Name = titleCased
-
-	return &out, nil
-}
-
 func (u *UserUsecaseStruct) Search(page, limit uint, keyword string) ([]*entity.User, int64, error) {
 	ms, total, err := u.Repo.Search(page, limit, keyword)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	es := make([]*entity.User, len(ms))
-	for i := range ms {
-		es[i] = &entity.User{}
-		_ = mapper.CopyTo(ms[i], es[i])
+	es, err := mapper.MapStructList[model.User, entity.User](ms)
+	if err != nil {
+		return nil, 0, err
 	}
-
 	return es, total, nil
 }
 
