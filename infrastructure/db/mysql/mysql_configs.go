@@ -43,7 +43,7 @@ func CreateDatabaseIfNotExists() error {
 	return nil
 }
 
-func ConnectDatabase() {
+func ConnectDatabase() error {
 	dbUser := environment.Env.DB_USERNAME
 	dbPassword := environment.Env.DB_PASSWORD
 	dbHost := environment.Env.DB_HOST
@@ -53,18 +53,22 @@ func ConnectDatabase() {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPassword, dbHost, dbPort, dbName)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic("failed to connect database")
+		return fmt.Errorf("failed to connect database: %w", err)
 	}
 
 	DB = db
+	return nil
 }
 
-func AutoMigrate() {
-	ConnectDatabase()
-	if migrateErr := DB.AutoMigrate(
+func AutoMigrate() error {
+	if DB == nil {
+		return fmt.Errorf("database connection is not initialized")
+	}
+	if err := DB.AutoMigrate(
 		&model.User{},
 		&model.Slider{},
-	); migrateErr != nil {
-		panic(migrateErr)
+	); err != nil {
+		return fmt.Errorf("auto migrate failed: %w", err)
 	}
+	return nil
 }

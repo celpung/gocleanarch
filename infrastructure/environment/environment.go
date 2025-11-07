@@ -36,7 +36,7 @@ func init() {
 		PORT:            getEnv("PORT", "8080"),
 		APP_NAME:        getEnv("APP_NAME", "GoCleanArch"),
 		MODE:            getEnv("MODE", "debug"),
-		JWT_SECRET:      getEnv("MODE", "534LK786HJK7DHFG89"),
+		JWT_SECRET:      getEnv("JWT_SECRET", "534LK786HJK7DHFG89"),
 		DB_USERNAME:     getEnv("DB_USERNAME", "root"),
 		DB_PASSWORD:     getEnv("DB_PASSWORD", ""),
 		DB_NAME:         getEnv("DB_NAME", "gocleanarch"),

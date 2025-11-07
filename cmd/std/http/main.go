@@ -13,9 +13,15 @@ import (
 
 func main() {
 	// Connect to the database and auto migrate
-	mysql.CreateDatabaseIfNotExists()
-	mysql.ConnectDatabase()
-	mysql.AutoMigrate()
+	if err := mysql.CreateDatabaseIfNotExists(); err != nil {
+		log.Fatalf("failed to prepare database: %v", err)
+	}
+	if err := mysql.ConnectDatabase(); err != nil {
+		log.Fatalf("failed to connect database: %v", err)
+	}
+	if err := mysql.AutoMigrate(); err != nil {
+		log.Fatalf("failed to auto migrate database: %v", err)
+	}
 
 	// Setup mode
 	mode := environment.Env.MODE
@@ -60,5 +66,7 @@ func main() {
 	}
 
 	// Start the server
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil); err != nil {
+		log.Fatalf("failed to start std http server: %v", err)
+	}
 }

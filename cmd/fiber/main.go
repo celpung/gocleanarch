@@ -13,9 +13,15 @@ import (
 
 func main() {
 	// Connect to the database and auto migrate
-	mysql.CreateDatabaseIfNotExists()
-	mysql.ConnectDatabase()
-	mysql.AutoMigrate()
+	if err := mysql.CreateDatabaseIfNotExists(); err != nil {
+		log.Fatalf("failed to prepare database: %v", err)
+	}
+	if err := mysql.ConnectDatabase(); err != nil {
+		log.Fatalf("failed to connect database: %v", err)
+	}
+	if err := mysql.AutoMigrate(); err != nil {
+		log.Fatalf("failed to auto migrate database: %v", err)
+	}
 
 	// setup mode
 	mode := environment.Env.MODE
@@ -49,5 +55,7 @@ func main() {
 	r.Static("/images", "../../public/images")
 
 	log.Printf("Running in %s mode", mode)
-	log.Fatal(r.Listen(":" + environment.Env.PORT))
+	if err := r.Listen(":" + environment.Env.PORT); err != nil {
+		log.Fatalf("failed to start fiber server: %v", err)
+	}
 }
