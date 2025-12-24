@@ -12,7 +12,7 @@ type Environment struct {
 	PORT            string
 	APP_NAME        string
 	MODE            string
-	JWT_SECRET      string
+	JWT_TOKEN       string
 	DB_USERNAME     string
 	DB_PASSWORD     string
 	DB_NAME         string
@@ -36,7 +36,7 @@ func init() {
 		PORT:            getEnv("PORT", "8080"),
 		APP_NAME:        getEnv("APP_NAME", "GoCleanArch"),
 		MODE:            getEnv("MODE", "debug"),
-		JWT_SECRET:      getEnv("JWT_SECRET", "534LK786HJK7DHFG89"),
+		JWT_TOKEN:       getEnv("JWT_TOKEN", "534LK786HJK7DHFG89"),
 		DB_USERNAME:     getEnv("DB_USERNAME", "root"),
 		DB_PASSWORD:     getEnv("DB_PASSWORD", ""),
 		DB_NAME:         getEnv("DB_NAME", "gocleanarch"),

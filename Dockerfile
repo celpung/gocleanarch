@@ -12,7 +12,7 @@ RUN go mod download
 COPY . .
 
 # Navigate to the directory where main.go is located
-WORKDIR /app/cmd/gin
+WORKDIR /app/cmd/api
 
 # Build the Go application and output it as a binary named
 RUN go build -o /app/gocleanarch
