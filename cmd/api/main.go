@@ -11,9 +11,9 @@ import (
 	"github.com/celpung/gocleanarch/internal/infra/db/mysql"
 	"github.com/celpung/gocleanarch/internal/infra/environment"
 	"github.com/celpung/gocleanarch/internal/infra/identity"
-	"github.com/celpung/gocleanarch/internal/modules/user/handler"
+	"github.com/celpung/gocleanarch/internal/modules/user/delivery/handler"
+	user_router "github.com/celpung/gocleanarch/internal/modules/user/delivery/router"
 	"github.com/celpung/gocleanarch/internal/modules/user/repository"
-	user_router "github.com/celpung/gocleanarch/internal/modules/user/router"
 	"github.com/celpung/gocleanarch/internal/modules/user/usecase"
 
 	"github.com/go-chi/chi/v5"

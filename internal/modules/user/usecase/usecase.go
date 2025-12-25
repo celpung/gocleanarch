@@ -5,7 +5,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/celpung/gocleanarch/internal/modules/user/domain/entity"
+	"github.com/celpung/gocleanarch/internal/modules/user/entity"
 	"github.com/celpung/gocleanarch/internal/modules/user/usecase/dto"
 	"github.com/celpung/gocleanarch/internal/modules/user/usecase/port"
 	"github.com/celpung/gocleanarch/pkg/helpers/typograph"

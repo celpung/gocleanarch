@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/celpung/gocleanarch/internal/modules/user/domain/entity"
-	"github.com/celpung/gocleanarch/internal/modules/user/handler/dto"
+	"github.com/celpung/gocleanarch/internal/modules/user/delivery/dto"
+	"github.com/celpung/gocleanarch/internal/modules/user/entity"
 	usecase_dto "github.com/celpung/gocleanarch/internal/modules/user/usecase/dto"
 	"github.com/celpung/gocleanarch/internal/modules/user/usecase/port"
 	"github.com/celpung/gocleanarch/pkg/helpers/httpx"

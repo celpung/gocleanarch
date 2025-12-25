@@ -3,7 +3,7 @@ package user_router
 import (
 	"github.com/go-chi/chi/v5"
 
-	"github.com/celpung/gocleanarch/internal/modules/user/handler"
+	"github.com/celpung/gocleanarch/internal/modules/user/delivery/handler"
 )
 
 func Register(r chi.Router, userHandler *handler.UserHandler) {

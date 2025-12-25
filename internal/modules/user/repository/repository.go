@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/celpung/gocleanarch/internal/infra/db/model"
-	"github.com/celpung/gocleanarch/internal/modules/user/domain/entity"
+	"github.com/celpung/gocleanarch/internal/modules/user/entity"
 	"github.com/celpung/gocleanarch/internal/modules/user/usecase/port"
 	"gorm.io/gorm"
 )
