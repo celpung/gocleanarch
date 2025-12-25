@@ -3,7 +3,7 @@ package migration
 import (
 	"fmt"
 
-	"github.com/celpung/gocleanarch/app/infra/db/model"
+	"github.com/celpung/gocleanarch/internal/infra/db/model"
 	"gorm.io/gorm"
 )
 

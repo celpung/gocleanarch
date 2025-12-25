@@ -3,7 +3,7 @@ package seeder
 import (
 	"fmt"
 
-	"github.com/celpung/gocleanarch/app/infra/db/model"
+	"github.com/celpung/gocleanarch/internal/infra/db/model"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )

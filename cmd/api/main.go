@@ -7,17 +7,24 @@ import (
 	"strings"
 	"time"
 
-	"github.com/celpung/gocleanarch/app/infra/db/mysql"
-	"github.com/celpung/gocleanarch/app/infra/environment"
-	user_router "github.com/celpung/gocleanarch/app/modules/user/router"
+	"github.com/celpung/gocleanarch/internal/infra/auth"
+	"github.com/celpung/gocleanarch/internal/infra/db/mysql"
+	"github.com/celpung/gocleanarch/internal/infra/environment"
+	"github.com/celpung/gocleanarch/internal/infra/identity"
+	"github.com/celpung/gocleanarch/internal/modules/user/handler"
+	"github.com/celpung/gocleanarch/internal/modules/user/repository"
+	user_router "github.com/celpung/gocleanarch/internal/modules/user/router"
+	"github.com/celpung/gocleanarch/internal/modules/user/usecase"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {
+	env := environment.Load()
+
 	// VALIDATE MODE
-	mode := environment.Env.MODE
+	mode := env.MODE
 	if mode != "debug" && mode != "release" {
 		fmt.Println("-------------------------------------------------")
 		fmt.Println("Please set MODE=debug or MODE=release")
@@ -27,11 +34,11 @@ func main() {
 
 	// DATABASE BOOTSTRAP
 	dbCfg := mysql.Config{
-		Username: environment.Env.DB_USERNAME,
-		Password: environment.Env.DB_PASSWORD,
-		Host:     environment.Env.DB_HOST,
-		Port:     environment.Env.DB_PORT,
-		Database: environment.Env.DB_NAME,
+		Username: env.DB_USERNAME,
+		Password: env.DB_PASSWORD,
+		Host:     env.DB_HOST,
+		Port:     env.DB_PORT,
+		Database: env.DB_NAME,
 	}
 
 	database, err := mysql.New(dbCfg)
@@ -52,7 +59,7 @@ func main() {
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	// CORS
-	allowedOriginsRaw := environment.Env.ALLOWED_ORIGINS
+	allowedOriginsRaw := env.ALLOWED_ORIGINS
 	if allowedOriginsRaw == "" {
 		log.Fatal("ALLOWED_ORIGINS environment variable is not set")
 	}
@@ -72,10 +79,13 @@ func main() {
 	r.Handle("/images/*", fileServer)
 
 	// MODULE ROUTES
-	user_router.Register(r, db)
+	userRepo := repository.NewUserRepository(db)
+	userUsecase := usecase.NewUserUsecase(userRepo, auth.BcryptHasher{}, identity.UUIDGenerator{})
+	userHandler := handler.NewUserHandler(userUsecase)
+	user_router.Register(r, userHandler)
 
 	// START SERVER
-	port := environment.Env.PORT
+	port := env.PORT
 	log.Printf("Server running on port %s", port)
 	log.Fatal(http.ListenAndServe(":"+port, r))
 }

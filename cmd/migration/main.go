@@ -3,18 +3,20 @@ package main
 import (
 	"log"
 
-	"github.com/celpung/gocleanarch/app/infra/db/migration"
-	"github.com/celpung/gocleanarch/app/infra/db/mysql"
-	"github.com/celpung/gocleanarch/app/infra/environment"
+	"github.com/celpung/gocleanarch/internal/infra/db/migration"
+	"github.com/celpung/gocleanarch/internal/infra/db/mysql"
+	"github.com/celpung/gocleanarch/internal/infra/environment"
 )
 
 func main() {
+	env := environment.Load()
+
 	cfg := mysql.Config{
-		Username: environment.Env.DB_USERNAME,
-		Password: environment.Env.DB_PASSWORD,
-		Host:     environment.Env.DB_HOST,
-		Port:     environment.Env.DB_PORT,
-		Database: environment.Env.DB_NAME,
+		Username: env.DB_USERNAME,
+		Password: env.DB_PASSWORD,
+		Host:     env.DB_HOST,
+		Port:     env.DB_PORT,
+		Database: env.DB_NAME,
 	}
 
 	database, err := mysql.New(cfg)

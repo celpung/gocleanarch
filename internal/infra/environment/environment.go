@@ -22,16 +22,15 @@ type Environment struct {
 	ALLOWED_ORIGINS string
 }
 
-var Env Environment
-
-func init() {
+// Load reads environment variables (or .env) and returns a configured struct.
+func Load() Environment {
 	// Load .env file if it exists
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using hardcoded values")
 	}
 
 	// Initialize environment variables with fallback to hardcoded defaults
-	Env = Environment{
+	return Environment{
 		BASE_URL:        getEnv("BASE_URL", "http://localhost"),
 		PORT:            getEnv("PORT", "8080"),
 		APP_NAME:        getEnv("APP_NAME", "GoCleanArch"),
