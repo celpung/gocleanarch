@@ -7,14 +7,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/celpung/gocleanarch/internal/configs/auth"
+	"github.com/celpung/gocleanarch/internal/configs/db/mysql"
 	"github.com/celpung/gocleanarch/internal/configs/environment"
-	"github.com/celpung/gocleanarch/internal/infra/auth"
-	"github.com/celpung/gocleanarch/internal/infra/db/mysql"
-	"github.com/celpung/gocleanarch/internal/infra/identity"
-	"github.com/celpung/gocleanarch/internal/modules/user/delivery/handler"
-	user_router "github.com/celpung/gocleanarch/internal/modules/user/delivery/router"
-	"github.com/celpung/gocleanarch/internal/modules/user/repository"
-	"github.com/celpung/gocleanarch/internal/modules/user/usecase"
+	"github.com/celpung/gocleanarch/internal/configs/identity"
+	"github.com/celpung/gocleanarch/internal/delivery/handler"
+	"github.com/celpung/gocleanarch/internal/delivery/router"
+	"github.com/celpung/gocleanarch/internal/repository"
+	"github.com/celpung/gocleanarch/internal/usecase"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -79,10 +79,15 @@ func main() {
 	r.Handle("/images/*", fileServer)
 
 	// MODULE ROUTES
+	companyRepo := repository.NewCompanyRepository(db)
+	companyUsecase := usecase.NewCompanyUsecase(companyRepo, identity.UUIDGenerator{})
+	companyHandler := handler.NewCompanyHandler(companyUsecase)
 	userRepo := repository.NewUserRepository(db)
-	userUsecase := usecase.NewUserUsecase(userRepo, auth.BcryptHasher{}, identity.UUIDGenerator{})
+	userUsecase := usecase.NewUserUsecase(userRepo, companyRepo, auth.BcryptHasher{}, identity.UUIDGenerator{})
 	userHandler := handler.NewUserHandler(userUsecase)
-	user_router.Register(r, userHandler)
+
+	router.UserRouter(r, userHandler)
+	router.CompanyRouter(r, companyHandler)
 
 	// START SERVER
 	port := env.PORT
