@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/celpung/gocleanarch/internal/configs/environment"
 	"github.com/celpung/gocleanarch/internal/infra/auth"
 	"github.com/celpung/gocleanarch/internal/infra/db/mysql"
-	"github.com/celpung/gocleanarch/internal/infra/environment"
 	"github.com/celpung/gocleanarch/internal/infra/identity"
 	"github.com/celpung/gocleanarch/internal/modules/user/delivery/handler"
 	user_router "github.com/celpung/gocleanarch/internal/modules/user/delivery/router"
