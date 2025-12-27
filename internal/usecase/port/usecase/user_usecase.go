@@ -12,6 +12,7 @@ type UserUsecase interface {
 	ListUsers(ctx context.Context, page, limit int) ([]entity.User, int64, error)
 	UpdateUser(ctx context.Context, id string, input UpdateUserInput) error
 	DeleteUser(ctx context.Context, id string) error
+	Login(ctx context.Context, email, password string) (string, error)
 }
 
 type CreateUserInput struct {

@@ -83,7 +83,12 @@ func main() {
 	companyUsecase := usecase.NewCompanyUsecase(companyRepo, identity.UUIDGenerator{})
 	companyHandler := handler.NewCompanyHandler(companyUsecase)
 	userRepo := repository.NewUserRepository(db)
-	userUsecase := usecase.NewUserUsecase(userRepo, companyRepo, auth.BcryptHasher{}, identity.UUIDGenerator{})
+	userUsecase := usecase.NewUserUsecase(
+		userRepo,
+		companyRepo,
+		auth.BcryptHasher{},
+		identity.UUIDGenerator{},
+		auth.JwtGenerator{})
 	userHandler := handler.NewUserHandler(userUsecase)
 
 	router.UserRouter(r, userHandler)

@@ -14,20 +14,7 @@ type UserUsecase struct {
 	companyRepo port.CompanyRepository
 	hasher      port.PasswordHasher
 	idGen       port.IDGenerator
-}
-
-func NewUserUsecase(
-	repo port.UserRepository,
-	companyRepo port.CompanyRepository,
-	hasher port.PasswordHasher,
-	idGen port.IDGenerator,
-) port.UserUsecase {
-	return &UserUsecase{
-		repo:        repo,
-		companyRepo: companyRepo,
-		hasher:      hasher,
-		idGen:       idGen,
-	}
+	JwtGen      port.JwtGenerator
 }
 
 func (u *UserUsecase) CreateUser(ctx context.Context, input port.CreateUserInput) (*entity.User, error) {
@@ -172,4 +159,38 @@ func (u *UserUsecase) DeleteUser(ctx context.Context, id string) error {
 		return port.ValidationError{Field: "id", Message: "is required"}
 	}
 	return u.repo.DeleteUser(ctx, id)
+}
+
+func (u *UserUsecase) Login(ctx context.Context, email string, password string) (string, error) {
+	usr, err := u.repo.FindByEmail(ctx, email)
+	if err != nil {
+		return "", port.ErrUserNotFound
+	}
+
+	if err := u.hasher.Compare(usr.Password, password); err != nil {
+		return "", port.ErrWrongPassword
+	}
+
+	token, err := u.JwtGen.Generate(usr.ID, usr.Email, usr.Role)
+	if err != nil {
+		return "", port.ErrJwtFailure
+	}
+
+	return token, nil
+}
+
+func NewUserUsecase(
+	repo port.UserRepository,
+	companyRepo port.CompanyRepository,
+	hasher port.PasswordHasher,
+	idGen port.IDGenerator,
+	JwtGen port.JwtGenerator,
+) port.UserUsecase {
+	return &UserUsecase{
+		repo:        repo,
+		companyRepo: companyRepo,
+		hasher:      hasher,
+		idGen:       idGen,
+		JwtGen:      JwtGen,
+	}
 }

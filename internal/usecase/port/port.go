@@ -10,6 +10,7 @@ type (
 	// dependencies
 	PasswordHasher = dependencies.PasswordHasher
 	IDGenerator    = dependencies.IDGenerator
+	JwtGenerator   = dependencies.JwtGenerator
 
 	// repositories
 	UserRepository    = repo.UserRepository

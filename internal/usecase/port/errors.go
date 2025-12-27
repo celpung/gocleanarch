@@ -23,6 +23,8 @@ var (
 	ErrEmailAlreadyExists = errors.New("email already exists")
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrUserNotFound       = errors.New("user not found")
+	ErrWrongPassword      = errors.New("wrong password")
+	ErrJwtFailure         = errors.New("Failed to generate JWT")
 
 	//company
 	ErrCompanyNameExists = errors.New("company name already exists")
