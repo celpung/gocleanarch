@@ -26,6 +26,7 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *entity.User) erro
 		}
 		return err
 	}
+
 	return nil
 }
 
@@ -37,6 +38,7 @@ func (r *UserRepository) GetUser(ctx context.Context, id string) (*entity.User, 
 		}
 		return nil, err
 	}
+
 	return &user, nil
 }
 
@@ -48,6 +50,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*entity
 		}
 		return nil, err
 	}
+
 	return &user, nil
 }
 
@@ -97,9 +100,11 @@ func (r *UserRepository) DeleteUser(ctx context.Context, id string) error {
 	if result.Error != nil {
 		return result.Error
 	}
+
 	if result.RowsAffected == 0 {
 		return port.ErrUserNotFound
 	}
+
 	return nil
 }
 
