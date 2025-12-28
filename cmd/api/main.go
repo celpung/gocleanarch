@@ -7,14 +7,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/celpung/gocleanarch/internal_old/configs/auth"
-	"github.com/celpung/gocleanarch/internal_old/configs/db/mysql"
-	"github.com/celpung/gocleanarch/internal_old/configs/environment"
-	"github.com/celpung/gocleanarch/internal_old/configs/identity"
-	"github.com/celpung/gocleanarch/internal_old/delivery/handler"
-	"github.com/celpung/gocleanarch/internal_old/delivery/router"
-	"github.com/celpung/gocleanarch/internal_old/repository"
-	"github.com/celpung/gocleanarch/internal_old/usecase"
+	"github.com/celpung/gocleanarch/internal/delivery/handler"
+	"github.com/celpung/gocleanarch/internal/delivery/router"
+	"github.com/celpung/gocleanarch/internal/infra/auth"
+	"github.com/celpung/gocleanarch/internal/infra/db/mysql"
+	"github.com/celpung/gocleanarch/internal/infra/environment"
+	"github.com/celpung/gocleanarch/internal/infra/identity"
+	"github.com/celpung/gocleanarch/internal/infra/persistance"
+	"github.com/celpung/gocleanarch/internal/usecase"
+	"github.com/celpung/gocleanarch/pkg/helpers/typograph"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -79,20 +80,24 @@ func main() {
 	r.Handle("/images/*", fileServer)
 
 	// MODULE ROUTES
-	companyRepo := repository.NewCompanyRepository(db)
-	companyUsecase := usecase.NewCompanyUsecase(companyRepo, identity.UUIDGenerator{})
-	companyHandler := handler.NewCompanyHandler(companyUsecase)
-	userRepo := repository.NewUserRepository(db)
-	userUsecase := usecase.NewUserUsecase(
-		userRepo,
-		companyRepo,
-		auth.BcryptHasher{},
-		identity.UUIDGenerator{},
-		auth.NewJwtGenerator(env.JWT_TOKEN))
+	// companyRepo := repository.NewCompanyRepository(db)
+	// companyUsecase := usecase.NewCompanyUsecase(companyRepo, identity.UUIDGenerator{})
+	// companyHandler := handler.NewCompanyHandler(companyUsecase)
+	// userRepo := persistance.NewUserRepository(db)
+	// userUsecase := usecase.NewUserUsecase(
+	// 	userRepo,
+	// 	auth.BcryptHasher{},
+	// 	identity.UUIDGenerator{},
+	// 	auth.NewJwtGenerator(env.JWT_TOKEN))
+	// userHandler := handler.NewUserHandler(userUsecase)
+
+	// router.UserRouter(r, userHandler)
+
+	userRepo := persistance.NewUserRepository(db)
+	userUsecase := usecase.NewUserUsecase(userRepo, identity.UUIDGenerator{}, auth.BcryptHasher{}, auth.JwtGenerator{}, typograph.Typograph{})
 	userHandler := handler.NewUserHandler(userUsecase)
 
 	router.UserRouter(r, userHandler)
-	router.CompanyRouter(r, companyHandler)
 
 	// START SERVER
 	port := env.PORT

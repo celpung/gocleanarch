@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
-	"github.com/celpung/gocleanarch/internal_old/configs/db/mysql"
-	"github.com/celpung/gocleanarch/internal_old/configs/db/seeder"
-	"github.com/celpung/gocleanarch/internal_old/configs/environment"
+	"github.com/celpung/gocleanarch/internal/infra/db/mysql"
+	"github.com/celpung/gocleanarch/internal/infra/db/seeder"
+	"github.com/celpung/gocleanarch/internal/infra/environment"
 )
 
 func main() {

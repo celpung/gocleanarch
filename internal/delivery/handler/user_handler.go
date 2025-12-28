@@ -8,20 +8,14 @@ import (
 
 	"github.com/celpung/gocleanarch/internal/delivery/dto"
 	"github.com/celpung/gocleanarch/internal/entity"
-	"github.com/celpung/gocleanarch/internal/usecase"
+	usecaseport "github.com/celpung/gocleanarch/internal/usecase/port/usecase"
 	"github.com/celpung/gocleanarch/pkg/helpers/httpx"
 	"github.com/celpung/gocleanarch/pkg/helpers/validator"
 	"github.com/go-chi/chi/v5"
 )
 
 type UserHandler struct {
-	usecase usecase.UserUsecase
-}
-
-func NewUserHandler(usecase usecase.UserUsecase) *UserHandler {
-	return &UserHandler{
-		usecase: usecase,
-	}
+	usecase usecaseport.UserUsecase
 }
 
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -190,6 +184,12 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httpx.WriteJSON(w, http.StatusNoContent, nil)
+}
+
+func NewUserHandler(usecase usecaseport.UserUsecase) *UserHandler {
+	return &UserHandler{
+		usecase: usecase,
+	}
 }
 
 func respondUserError(w http.ResponseWriter, err error) {

@@ -9,7 +9,6 @@ import (
 	"github.com/celpung/gocleanarch/internal/usecase/port/dependencies"
 	"github.com/celpung/gocleanarch/internal/usecase/port/repository"
 	"github.com/celpung/gocleanarch/internal/usecase/port/usecase"
-	"github.com/celpung/gocleanarch/pkg/helpers/typograph"
 )
 
 type UserUsecase struct {
@@ -87,7 +86,7 @@ func (u *UserUsecase) UpdateUser(ctx context.Context, id string, input *entity.U
 	updates := make(map[string]any)
 
 	if input.Name != "" {
-		name := strings.TrimSpace(typograph.ToTitleCase(input.Name))
+		name := strings.TrimSpace(u.typograph.ToTitleCase(input.Name))
 		updates["name"] = name
 	}
 
@@ -110,9 +109,16 @@ func (u *UserUsecase) Delete(ctx context.Context, id string) error {
 
 func NewUserUsecase(
 	repo repository.UserRepository,
+	idGenerator dependencies.IDGenerator,
 	passwordHasher dependencies.PasswordHasher,
-	jwtGenerator dependencies.JwtGenerator) usecase.UserUsecase {
+	jwtGenerator dependencies.JwtGenerator,
+	typograph dependencies.TypoGraph,
+) usecase.UserUsecase {
 	return &UserUsecase{
-		repo: repo,
+		repo:           repo,
+		idGenerator:    idGenerator,
+		passwordHasher: passwordHasher,
+		jwtGenerator:   jwtGenerator,
+		typograph:      typograph,
 	}
 }

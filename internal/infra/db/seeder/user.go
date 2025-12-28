@@ -3,7 +3,7 @@ package seeder
 import (
 	"fmt"
 
-	"github.com/celpung/gocleanarch/internal_old/configs/db/model"
+	"github.com/celpung/gocleanarch/internal/infra/db/model"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -34,13 +34,11 @@ func Seed(db *gorm.DB) error {
 	}
 
 	admin := model.User{
-		ID:        adminID,
-		Name:      adminName,
-		Email:     adminEmail,
-		Password:  string(hashed),
-		Role:      "admin",
-		CompanyID: "",
-		IsActive:  true,
+		ID:       adminID,
+		Name:     adminName,
+		Email:    adminEmail,
+		Password: string(hashed),
+		Role:     "admin",
 	}
 
 	if err := db.Create(&admin).Error; err != nil {

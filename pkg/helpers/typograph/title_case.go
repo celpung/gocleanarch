@@ -5,7 +5,9 @@ import (
 	"unicode"
 )
 
-func ToTitleCase(s string) string {
+type Typograph struct{}
+
+func (Typograph) ToTitleCase(s string) string {
 	words := strings.Fields(strings.ToLower(s))
 	for i, word := range words {
 		if len(word) > 0 {
