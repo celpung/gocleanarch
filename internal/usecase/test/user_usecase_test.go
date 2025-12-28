@@ -9,9 +9,9 @@ import (
 	"github.com/celpung/gocleanarch/internal/infra/persistence"
 	"github.com/celpung/gocleanarch/internal/usecase"
 	"github.com/celpung/gocleanarch/internal/usecase/port/dependencies"
-	usecaseport "github.com/celpung/gocleanarch/internal/usecase/port/usecase"
 	"github.com/celpung/gocleanarch/internal/usecase/port/repository"
-	"github.com/celpung/gocleanarch/pkg/helpers/typograph"
+	usecaseport "github.com/celpung/gocleanarch/internal/usecase/port/usecase"
+	"github.com/celpung/gocleanarch/pkg/typograph"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )

@@ -11,8 +11,8 @@ import (
 	"github.com/celpung/gocleanarch/internal/delivery/middleware"
 	"github.com/celpung/gocleanarch/internal/entity"
 	usecaseport "github.com/celpung/gocleanarch/internal/usecase/port/usecase"
-	"github.com/celpung/gocleanarch/pkg/helpers/httpx"
-	"github.com/celpung/gocleanarch/pkg/helpers/validator"
+	"github.com/celpung/gocleanarch/pkg/httpx"
+	"github.com/celpung/gocleanarch/pkg/validator"
 	"github.com/go-chi/chi/v5"
 )
 

@@ -15,7 +15,7 @@ import (
 	"github.com/celpung/gocleanarch/internal/infra/identity"
 	"github.com/celpung/gocleanarch/internal/infra/persistence"
 	"github.com/celpung/gocleanarch/internal/usecase"
-	"github.com/celpung/gocleanarch/pkg/helpers/typograph"
+	"github.com/celpung/gocleanarch/pkg/typograph"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"

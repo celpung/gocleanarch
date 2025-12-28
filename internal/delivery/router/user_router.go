@@ -10,15 +10,22 @@ import (
 
 func UserRouter(r chi.Router, verifier dependencies.TokenVerifier, userHandler *handler.UserHandler) {
 	r.Route("/user", func(r chi.Router) {
+		// PUBLIC
 		r.Post("/register", userHandler.Register)
 		r.Post("/login", userHandler.Login)
 
-		r.Use(middleware.AuthMiddleware(verifier, middleware.User, middleware.Admin, middleware.Super))
-		r.Post("/change-password", userHandler.ChangePassword)
-		r.Put("/{id}", userHandler.UpdateUser)
-		r.Delete("/{id}", userHandler.DeleteUser)
+		// PROTECTED: User/Admin/Super
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.AuthMiddleware(verifier, middleware.User, middleware.Admin, middleware.Super))
+			r.Post("/change-password", userHandler.ChangePassword)
+			r.Put("/{id}", userHandler.UpdateUser)
+			r.Delete("/{id}", userHandler.DeleteUser)
+		})
 
-		r.Use(middleware.AuthMiddleware(verifier, middleware.Admin, middleware.Super))
-		r.Get("/", userHandler.ListUsers)
+		// PROTECTED: Admin/Super
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.AuthMiddleware(verifier, middleware.Admin, middleware.Super))
+			r.Get("/", userHandler.ListUsers)
+		})
 	})
 }
