@@ -14,6 +14,7 @@ func UserRouter(r chi.Router, verifier dependencies.TokenVerifier, userHandler *
 		r.Post("/login", userHandler.Login)
 
 		r.Use(middleware.AuthMiddleware(verifier, middleware.User, middleware.Admin, middleware.Super))
+		r.Post("/change-password", userHandler.ChangePassword)
 		r.Put("/{id}", userHandler.UpdateUser)
 		r.Delete("/{id}", userHandler.DeleteUser)
 

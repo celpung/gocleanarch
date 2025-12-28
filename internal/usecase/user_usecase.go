@@ -19,6 +19,9 @@ type UserUsecase struct {
 }
 
 func (u *UserUsecase) Register(ctx context.Context, user entity.User) error {
+	user.Name = strings.TrimSpace(u.typograph.ToTitleCase(user.Name))
+	user.Email = strings.TrimSpace(user.Email)
+	user.Role = strings.TrimSpace(user.Role)
 	hash, err := u.passwordHasher.Hash(user.Password)
 	if err != nil {
 		return entity.ErrPasswordHash
@@ -57,8 +60,8 @@ func (u *UserUsecase) Login(ctx context.Context, email string, password string) 
 	return token, nil
 }
 
-func (u *UserUsecase) ChangePassword(ctx context.Context, email string, password string) error {
-	usr, err := u.repo.FindByEmail(ctx, email)
+func (u *UserUsecase) ChangePassword(ctx context.Context, userID string, password string) error {
+	usr, err := u.repo.FindByID(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -103,8 +106,7 @@ func (u *UserUsecase) UpdateUser(ctx context.Context, id string, input *entity.U
 	}
 
 	if input.Role != "" {
-		role := strings.TrimSpace(input.Role)
-		updates["role"] = role
+		updates["role"] = input.Role
 	}
 
 	return u.repo.Update(ctx, id, updates)

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/celpung/gocleanarch/internal/delivery/dto"
+	"github.com/celpung/gocleanarch/internal/delivery/middleware"
 	"github.com/celpung/gocleanarch/internal/entity"
 	usecaseport "github.com/celpung/gocleanarch/internal/usecase/port/usecase"
 	"github.com/celpung/gocleanarch/pkg/helpers/httpx"
@@ -58,13 +59,19 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	userID, ok := middleware.UserIDFromContext(r.Context())
+	if !ok {
+		writeBadRequest(w, "user not found in context")
+		return
+	}
+
 	var req dto.ChangePasswordRequest
 	if err := decodeAndValidate(r, &req); err != nil {
 		writeBadRequest(w, err.Error())
 		return
 	}
 
-	if err := h.usecase.ChangePassword(r.Context(), req.Email, req.Password); err != nil {
+	if err := h.usecase.ChangePassword(r.Context(), userID, req.Password); err != nil {
 		respondUserError(w, err)
 		return
 	}
@@ -122,7 +129,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpx.WriteJSON(w, http.StatusNoContent, nil)
+	httpx.WriteJSON(w, http.StatusOK, map[string]string{"message": "user updated"})
 }
 
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -137,7 +144,7 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpx.WriteJSON(w, http.StatusNoContent, nil)
+	httpx.WriteJSON(w, http.StatusOK, map[string]string{"message": "user deleted"})
 }
 
 func NewUserHandler(usecase usecaseport.UserUsecase) *UserHandler {
@@ -147,7 +154,9 @@ func NewUserHandler(usecase usecaseport.UserUsecase) *UserHandler {
 }
 
 func decodeAndValidate(r *http.Request, dst any) error {
-	if err := json.NewDecoder(r.Body).Decode(dst); err != nil {
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(dst); err != nil {
 		return errors.New("invalid request body")
 	}
 	return validator.Validate(dst)

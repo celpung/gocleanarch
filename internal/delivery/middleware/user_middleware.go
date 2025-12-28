@@ -83,7 +83,7 @@ func AuthMiddleware(verifier dependencies.TokenVerifier, allowedRoles ...Role) f
 				return
 			}
 
-			userRole := Role(strings.ToUpper(strings.TrimSpace(claims.Role)))
+			userRole := strings.TrimSpace(claims.Role)
 			if !roleAllowed(userRole, allowedRoles) {
 				writeJSONError(w, http.StatusForbidden, "forbidden")
 				return
@@ -91,7 +91,7 @@ func AuthMiddleware(verifier dependencies.TokenVerifier, allowedRoles ...Role) f
 
 			ctx := context.WithValue(r.Context(), ctxKeyID, claims.ID)
 			ctx = context.WithValue(ctx, ctxKeyEmail, claims.Email)
-			ctx = context.WithValue(ctx, ctxKeyRole, string(userRole))
+			ctx = context.WithValue(ctx, ctxKeyRole, userRole)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
@@ -132,12 +132,13 @@ func notValidYet(claims *Claims, leeway time.Duration) bool {
 	return claims.NotBefore != nil && claims.NotBefore.After(time.Now().Add(leeway))
 }
 
-func roleAllowed(userRole Role, allowed []Role) bool {
+func roleAllowed(userRole string, allowed []Role) bool {
 	if len(allowed) == 0 {
 		return true
 	}
+	userRoleNorm := strings.ToLower(userRole)
 	for _, r := range allowed {
-		if userRole == r {
+		if strings.ToLower(string(r)) == userRoleNorm {
 			return true
 		}
 	}

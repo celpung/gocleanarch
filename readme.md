@@ -18,7 +18,7 @@ These instructions will help you set up and run the project locally for developm
 
 Make sure you have the following installed on your system:
 
-- [Go](https://golang.org/dl/) version `1.12.x` or higher
+- [Go](https://golang.org/dl/) version `1.24.x` or higher
 
 ### 📦 Installation
 
