@@ -3,11 +3,13 @@ package usecase
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/celpung/gocleanarch/internal/entity"
 	"github.com/celpung/gocleanarch/internal/usecase/port/dependencies"
 	"github.com/celpung/gocleanarch/internal/usecase/port/repository"
 	"github.com/celpung/gocleanarch/internal/usecase/port/usecase"
+	"github.com/celpung/gocleanarch/pkg/helpers/typograph"
 )
 
 type UserUsecase struct {
@@ -15,6 +17,7 @@ type UserUsecase struct {
 	idGenerator    dependencies.IDGenerator
 	passwordHasher dependencies.PasswordHasher
 	jwtGenerator   dependencies.JwtGenerator
+	typograph      dependencies.TypoGraph
 }
 
 func (u *UserUsecase) Register(ctx context.Context, user entity.User) error {
@@ -80,8 +83,29 @@ func (u *UserUsecase) UserLists(ctx context.Context, page, limit int) ([]entity.
 	return u.repo.Lists(ctx, offset, limit)
 }
 
-func (u *UserUsecase) UpdateUser(ctx context.Context, user *entity.User) error {
-	panic("unimplemented")
+func (u *UserUsecase) UpdateUser(ctx context.Context, id string, input *entity.User) error {
+	updates := make(map[string]any)
+
+	if input.Name != "" {
+		name := strings.TrimSpace(typograph.ToTitleCase(input.Name))
+		updates["name"] = name
+	}
+
+	if input.Email != "" {
+		email := strings.TrimSpace(input.Email)
+		updates["email"] = email
+	}
+
+	if input.Role != "" {
+		role := strings.TrimSpace(input.Role)
+		updates["role"] = role
+	}
+
+	return u.repo.Update(ctx, id, updates)
+}
+
+func (u *UserUsecase) Delete(ctx context.Context, id string) error {
+	return u.repo.Delete(ctx, id)
 }
 
 func NewUserUsecase(
