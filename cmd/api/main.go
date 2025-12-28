@@ -7,14 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/celpung/gocleanarch/internal/configs/auth"
-	"github.com/celpung/gocleanarch/internal/configs/db/mysql"
-	"github.com/celpung/gocleanarch/internal/configs/environment"
-	"github.com/celpung/gocleanarch/internal/configs/identity"
-	"github.com/celpung/gocleanarch/internal/delivery/handler"
-	"github.com/celpung/gocleanarch/internal/delivery/router"
-	"github.com/celpung/gocleanarch/internal/repository"
-	"github.com/celpung/gocleanarch/internal/usecase"
+	"github.com/celpung/gocleanarch/internal_old/configs/auth"
+	"github.com/celpung/gocleanarch/internal_old/configs/db/mysql"
+	"github.com/celpung/gocleanarch/internal_old/configs/environment"
+	"github.com/celpung/gocleanarch/internal_old/configs/identity"
+	"github.com/celpung/gocleanarch/internal_old/delivery/handler"
+	"github.com/celpung/gocleanarch/internal_old/delivery/router"
+	"github.com/celpung/gocleanarch/internal_old/repository"
+	"github.com/celpung/gocleanarch/internal_old/usecase"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -88,7 +88,7 @@ func main() {
 		companyRepo,
 		auth.BcryptHasher{},
 		identity.UUIDGenerator{},
-		auth.JwtGenerator{})
+		auth.NewJwtGenerator(env.JWT_TOKEN))
 	userHandler := handler.NewUserHandler(userUsecase)
 
 	router.UserRouter(r, userHandler)
