@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -20,17 +21,8 @@ type UserHandler struct {
 
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req dto.UserDto
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httpx.WriteJSON(w, http.StatusBadRequest, map[string]string{"message": "invalid request body"})
-		return
-	}
-
-	if err := validator.Validate(req); err != nil {
-		httpx.WriteJSON(w, http.StatusBadRequest, map[string]any{
-			"message": "Validation failed",
-			"error":   err.Error(),
-		})
+	if err := decodeAndValidate(r, &req); err != nil {
+		writeBadRequest(w, err.Error())
 		return
 	}
 
@@ -51,17 +43,8 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req dto.LoginRequest
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httpx.WriteJSON(w, http.StatusBadRequest, map[string]string{"message": "invalid request body"})
-		return
-	}
-
-	if err := validator.Validate(req); err != nil {
-		httpx.WriteJSON(w, http.StatusBadRequest, map[string]any{
-			"message": "Validation failed",
-			"error":   err.Error(),
-		})
+	if err := decodeAndValidate(r, &req); err != nil {
+		writeBadRequest(w, err.Error())
 		return
 	}
 
@@ -76,17 +59,8 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	var req dto.ChangePasswordRequest
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httpx.WriteJSON(w, http.StatusBadRequest, map[string]string{"message": "invalid request body"})
-		return
-	}
-
-	if err := validator.Validate(req); err != nil {
-		httpx.WriteJSON(w, http.StatusBadRequest, map[string]any{
-			"message": "Validation failed",
-			"error":   err.Error(),
-		})
+	if err := decodeAndValidate(r, &req); err != nil {
+		writeBadRequest(w, err.Error())
 		return
 	}
 
@@ -99,19 +73,7 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
-	page, limit := 1, 10
-
-	if v := r.URL.Query().Get("page"); v != "" {
-		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
-			page = parsed
-		}
-	}
-
-	if v := r.URL.Query().Get("limit"); v != "" {
-		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
-			limit = parsed
-		}
-	}
+	page, limit := parsePagination(r)
 
 	users, total, err := h.usecase.UserLists(r.Context(), page, limit)
 	if err != nil {
@@ -134,26 +96,18 @@ func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		httpx.WriteJSON(w, http.StatusBadRequest, map[string]string{"message": "user id is required"})
+		writeBadRequest(w, "user id is required")
 		return
 	}
 
 	var req dto.UpdateUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httpx.WriteJSON(w, http.StatusBadRequest, map[string]string{"message": "invalid request body"})
-		return
-	}
-
-	if err := validator.Validate(req); err != nil {
-		httpx.WriteJSON(w, http.StatusBadRequest, map[string]any{
-			"message": "Validation failed",
-			"error":   err.Error(),
-		})
+	if err := decodeAndValidate(r, &req); err != nil {
+		writeBadRequest(w, err.Error())
 		return
 	}
 
 	if req.Name == "" && req.Email == "" && req.Role == "" {
-		httpx.WriteJSON(w, http.StatusBadRequest, map[string]string{"message": "no field to update"})
+		writeBadRequest(w, "no field to update")
 		return
 	}
 
@@ -174,7 +128,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		httpx.WriteJSON(w, http.StatusBadRequest, map[string]string{"message": "user id is required"})
+		writeBadRequest(w, "user id is required")
 		return
 	}
 
@@ -192,6 +146,35 @@ func NewUserHandler(usecase usecaseport.UserUsecase) *UserHandler {
 	}
 }
 
+func decodeAndValidate(r *http.Request, dst any) error {
+	if err := json.NewDecoder(r.Body).Decode(dst); err != nil {
+		return errors.New("invalid request body")
+	}
+	return validator.Validate(dst)
+}
+
+func parsePagination(r *http.Request) (page, limit int) {
+	page, limit = 1, 10
+
+	if v := r.URL.Query().Get("page"); v != "" {
+		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
+			page = parsed
+		}
+	}
+
+	if v := r.URL.Query().Get("limit"); v != "" {
+		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+
+	return page, limit
+}
+
+func writeBadRequest(w http.ResponseWriter, msg string) {
+	httpx.WriteJSON(w, http.StatusBadRequest, map[string]string{"message": msg})
+}
+
 func respondUserError(w http.ResponseWriter, err error) {
 	status := http.StatusInternalServerError
 	message := "internal server error"
@@ -199,21 +182,27 @@ func respondUserError(w http.ResponseWriter, err error) {
 	switch {
 	case err == nil:
 		return
-	case strings.Contains(err.Error(), "email already exists"):
+	case errors.Is(err, entity.ErrEmailExists):
 		status = http.StatusConflict
 		message = "email already exists"
-	case strings.Contains(err.Error(), "email not found"):
+	case errors.Is(err, entity.ErrEmailNotFound):
 		status = http.StatusNotFound
 		message = "email not found"
-	case strings.Contains(err.Error(), "user not found"):
+	case errors.Is(err, entity.ErrUserNotFound):
 		status = http.StatusNotFound
 		message = "user not found"
-	case strings.Contains(err.Error(), "password not match"):
+	case errors.Is(err, entity.ErrPasswordMismatch):
 		status = http.StatusUnauthorized
 		message = "password not match"
-	case strings.Contains(err.Error(), "no field to update"):
+	case errors.Is(err, entity.ErrNoFieldToUpdate):
 		status = http.StatusBadRequest
 		message = "no field to update"
+	case errors.Is(err, entity.ErrPasswordRequired):
+		status = http.StatusBadRequest
+		message = "password is required"
+	case errors.Is(err, entity.ErrPasswordHash), errors.Is(err, entity.ErrIDGeneration):
+		status = http.StatusInternalServerError
+		message = "internal server error"
 	}
 
 	httpx.WriteJSON(w, status, map[string]string{"message": message})

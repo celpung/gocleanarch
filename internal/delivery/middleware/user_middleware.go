@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/celpung/gocleanarch/internal/infra/environment"
+	"github.com/celpung/gocleanarch/internal/usecase/port/dependencies"
 	"github.com/golang-jwt/jwt/v4"
 )
 
@@ -28,7 +28,6 @@ const (
 	User  Role = "USER"
 )
 
-// Typed claims supaya tidak perlu casting-casting MapClaims.
 type Claims struct {
 	ID    string `json:"id"`
 	Email string `json:"email"`
@@ -49,7 +48,6 @@ func getBearerToken(r *http.Request) (string, error) {
 	if h == "" {
 		return "", errors.New("missing Authorization header")
 	}
-	// Pecah by space: "Bearer <token>"
 	parts := strings.Fields(h)
 	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
 		return "", errors.New("invalid Authorization format")
@@ -57,11 +55,13 @@ func getBearerToken(r *http.Request) (string, error) {
 	return parts[1], nil
 }
 
-func AuthMiddleware(allowedRoles ...Role) func(http.Handler) http.Handler {
-	secret := []byte(environment.Load().JWT_TOKEN)
-
+func AuthMiddleware(verifier dependencies.TokenVerifier, allowedRoles ...Role) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if verifier == nil {
+				writeJSONError(w, http.StatusInternalServerError, "server misconfigured")
+				return
+			}
 			tokStr, err := getBearerToken(r)
 			if err != nil {
 				writeJSONError(w, http.StatusUnauthorized, "Unauthorized")
@@ -69,42 +69,24 @@ func AuthMiddleware(allowedRoles ...Role) func(http.Handler) http.Handler {
 			}
 
 			claims := &Claims{}
-			token, err := jwt.ParseWithClaims(tokStr, claims, func(t *jwt.Token) (interface{}, error) {
-				// Pastikan pakai HMAC (HS256/HS384/HS512)
-				if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, errors.New("unexpected signing method")
-				}
-				return secret, nil
-			})
-			if err != nil || !token.Valid {
-				writeJSONError(w, http.StatusUnauthorized, "Unauthorized")
+			if err := verifier.Verify(tokStr, claims); err != nil {
+				writeJSONError(w, http.StatusUnauthorized, "unauthorized")
 				return
 			}
 
-			// Validasi waktu (exp/nbf) dengan leeway kecil (opsional).
-			if claims.ExpiresAt != nil && !claims.ExpiresAt.After(time.Now().Add(-30*time.Second)) {
-				writeJSONError(w, http.StatusUnauthorized, "Token expired")
+			if isExpired(claims, 30*time.Second) {
+				writeJSONError(w, http.StatusUnauthorized, "token expired")
 				return
 			}
-			if claims.NotBefore != nil && claims.NotBefore.After(time.Now().Add(30*time.Second)) {
-				writeJSONError(w, http.StatusUnauthorized, "Token not valid yet")
+			if notValidYet(claims, 30*time.Second) {
+				writeJSONError(w, http.StatusUnauthorized, "token not valid yet")
 				return
 			}
 
-			// Cek role (normalize uppercase)
 			userRole := Role(strings.ToUpper(strings.TrimSpace(claims.Role)))
-			if len(allowedRoles) > 0 {
-				authorized := false
-				for _, r := range allowedRoles {
-					if userRole == r {
-						authorized = true
-						break
-					}
-				}
-				if !authorized {
-					writeJSONError(w, http.StatusForbidden, "Forbidden")
-					return
-				}
+			if !roleAllowed(userRole, allowedRoles) {
+				writeJSONError(w, http.StatusForbidden, "forbidden")
+				return
 			}
 
 			ctx := context.WithValue(r.Context(), ctxKeyID, claims.ID)
@@ -140,4 +122,24 @@ func UserEmailFromContext(ctx context.Context) (string, bool) {
 func UserRoleFromContext(ctx context.Context) (Role, bool) {
 	role, ok := ctx.Value(ctxKeyRole).(string)
 	return Role(role), ok
+}
+
+func isExpired(claims *Claims, leeway time.Duration) bool {
+	return claims.ExpiresAt != nil && !claims.ExpiresAt.After(time.Now().Add(-leeway))
+}
+
+func notValidYet(claims *Claims, leeway time.Duration) bool {
+	return claims.NotBefore != nil && claims.NotBefore.After(time.Now().Add(leeway))
+}
+
+func roleAllowed(userRole Role, allowed []Role) bool {
+	if len(allowed) == 0 {
+		return true
+	}
+	for _, r := range allowed {
+		if userRole == r {
+			return true
+		}
+	}
+	return false
 }

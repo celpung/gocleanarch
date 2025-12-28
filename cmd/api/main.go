@@ -13,7 +13,7 @@ import (
 	"github.com/celpung/gocleanarch/internal/infra/db/mysql"
 	"github.com/celpung/gocleanarch/internal/infra/environment"
 	"github.com/celpung/gocleanarch/internal/infra/identity"
-	"github.com/celpung/gocleanarch/internal/infra/persistance"
+	"github.com/celpung/gocleanarch/internal/infra/persistence"
 	"github.com/celpung/gocleanarch/internal/usecase"
 	"github.com/celpung/gocleanarch/pkg/helpers/typograph"
 
@@ -79,25 +79,19 @@ func main() {
 	)
 	r.Handle("/images/*", fileServer)
 
-	// MODULE ROUTES
-	// companyRepo := repository.NewCompanyRepository(db)
-	// companyUsecase := usecase.NewCompanyUsecase(companyRepo, identity.UUIDGenerator{})
-	// companyHandler := handler.NewCompanyHandler(companyUsecase)
-	// userRepo := persistance.NewUserRepository(db)
-	// userUsecase := usecase.NewUserUsecase(
-	// 	userRepo,
-	// 	auth.BcryptHasher{},
-	// 	identity.UUIDGenerator{},
-	// 	auth.NewJwtGenerator(env.JWT_TOKEN))
-	// userHandler := handler.NewUserHandler(userUsecase)
-
-	// router.UserRouter(r, userHandler)
-
-	userRepo := persistance.NewUserRepository(db)
-	userUsecase := usecase.NewUserUsecase(userRepo, identity.UUIDGenerator{}, auth.BcryptHasher{}, auth.JwtGenerator{}, typograph.Typograph{})
+	userRepo := persistence.NewUserRepository(db)
+	jwtGenerator := auth.NewJwtGenerator(env.JWT_TOKEN)
+	jwtVerifier := auth.NewJwtVerifier(env.JWT_TOKEN)
+	userUsecase := usecase.NewUserUsecase(
+		userRepo,
+		identity.UUIDGenerator{},
+		auth.BcryptHasher{},
+		jwtGenerator,
+		typograph.Typograph{},
+	)
 	userHandler := handler.NewUserHandler(userUsecase)
 
-	router.UserRouter(r, userHandler)
+	router.UserRouter(r, jwtVerifier, userHandler)
 
 	// START SERVER
 	port := env.PORT

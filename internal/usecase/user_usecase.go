@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"strings"
 
 	"github.com/celpung/gocleanarch/internal/entity"
@@ -22,12 +21,12 @@ type UserUsecase struct {
 func (u *UserUsecase) Register(ctx context.Context, user entity.User) error {
 	hash, err := u.passwordHasher.Hash(user.Password)
 	if err != nil {
-		return errors.New("Failed to hash password")
+		return entity.ErrPasswordHash
 	}
 
 	uuid, err := u.idGenerator.NewID()
 	if err != nil {
-		return errors.New("failed to generate ID")
+		return entity.ErrIDGeneration
 	}
 
 	user.ID = uuid
@@ -47,7 +46,7 @@ func (u *UserUsecase) Login(ctx context.Context, email string, password string) 
 	}
 
 	if err := u.passwordHasher.Compare(usr.Password, password); err != nil {
-		return "", errors.New("password not match")
+		return "", entity.ErrPasswordMismatch
 	}
 
 	token, err := u.jwtGenerator.Generate(usr.ID, usr.Email, usr.Role)
@@ -64,22 +63,30 @@ func (u *UserUsecase) ChangePassword(ctx context.Context, email string, password
 		return err
 	}
 
-	hash, err := u.passwordHasher.Hash(usr.Password)
+	if strings.TrimSpace(password) == "" {
+		return entity.ErrPasswordRequired
+	}
+
+	hash, err := u.passwordHasher.Hash(password)
 	if err != nil {
-		return errors.New("Failed to hash password")
+		return entity.ErrPasswordHash
 	}
 
-	updates := make(map[string]any)
-	if password != "" {
-		updates["password"] = hash
-	}
-
-	return u.repo.Update(ctx, usr.ID, updates)
+	return u.repo.Update(ctx, usr.ID, map[string]any{"password": hash})
 }
 
 func (u *UserUsecase) UserLists(ctx context.Context, page, limit int) ([]entity.User, int64, error) {
 	offset := (page - 1) * limit
-	return u.repo.Lists(ctx, offset, limit)
+	users, total, err := u.repo.Lists(ctx, offset, limit)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	for i := range users {
+		users[i].Password = ""
+	}
+
+	return users, total, nil
 }
 
 func (u *UserUsecase) UpdateUser(ctx context.Context, id string, input *entity.User) error {
