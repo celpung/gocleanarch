@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/celpung/gocleanarch/internal/entity"
+	"github.com/celpung/gocleanarch/internal/domain/entity"
 )
 
 type UserRepository interface {

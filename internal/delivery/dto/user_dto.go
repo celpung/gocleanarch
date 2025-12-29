@@ -1,8 +1,13 @@
 package dto
 
-import userdto "github.com/celpung/gocleanarch/internal/usecase/user/dto"
+import "time"
 
-type RegisterRequest = userdto.CreateUserRequest
+type RegisterRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Name     string `json:"name" validate:"required,min=2"`
+	Password string `json:"password" validate:"required,min=8"`
+	Role     string `json:"role" validate:"required"`
+}
 
 type LoginRequest struct {
 	Email    string `json:"email" validate:"required,email"`
@@ -26,7 +31,14 @@ type PagingMeta struct {
 	TotalItems int64 `json:"total_items"`
 }
 
-type UserResponse = userdto.UserResponse
+type UserResponse struct {
+	ID        string    `json:"id"`
+	Email     string    `json:"email"`
+	Name      string    `json:"name"`
+	Role      string    `json:"role"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
 
 type ListUsersResponse struct {
 	Data []UserResponse `json:"data"`

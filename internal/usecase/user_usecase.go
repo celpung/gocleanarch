@@ -4,11 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/celpung/gocleanarch/internal/entity"
+	"github.com/celpung/gocleanarch/internal/domain/entity"
+	apperrors "github.com/celpung/gocleanarch/internal/domain/errors"
+	"github.com/celpung/gocleanarch/internal/usecase/dto"
 	"github.com/celpung/gocleanarch/internal/usecase/port/dependencies"
 	"github.com/celpung/gocleanarch/internal/usecase/port/repository"
 	usecase_port "github.com/celpung/gocleanarch/internal/usecase/port/usecase"
-	userdto "github.com/celpung/gocleanarch/internal/usecase/user/dto"
 )
 
 type UserUsecase struct {
@@ -35,7 +36,7 @@ func NewUserUsecase(
 	}
 }
 
-func (u *UserUsecase) Create(ctx context.Context, req userdto.CreateUserRequest) (userdto.UserResponse, error) {
+func (u *UserUsecase) Create(ctx context.Context, req dto.CreateUserRequest) (dto.UserResponse, error) {
 	req.Name = strings.TrimSpace(u.typograph.ToTitleCase(req.Name))
 	req.Email = strings.TrimSpace(strings.ToLower(req.Email))
 	req.Role = strings.TrimSpace(req.Role)
@@ -43,23 +44,23 @@ func (u *UserUsecase) Create(ctx context.Context, req userdto.CreateUserRequest)
 
 	switch {
 	case req.Name == "":
-		return userdto.UserResponse{}, entity.ErrNameRequired
+		return dto.UserResponse{}, apperrors.ErrNameRequired
 	case req.Email == "":
-		return userdto.UserResponse{}, entity.ErrEmailRequired
+		return dto.UserResponse{}, apperrors.ErrEmailRequired
 	case req.Role == "":
-		return userdto.UserResponse{}, entity.ErrRoleRequired
+		return dto.UserResponse{}, apperrors.ErrRoleRequired
 	case req.Password == "":
-		return userdto.UserResponse{}, entity.ErrPasswordRequired
+		return dto.UserResponse{}, apperrors.ErrPasswordRequired
 	}
 
 	hash, err := u.passwordHasher.Hash(req.Password)
 	if err != nil {
-		return userdto.UserResponse{}, entity.ErrPasswordHash
+		return dto.UserResponse{}, apperrors.ErrPasswordHash
 	}
 
 	id, err := u.idGenerator.NewID()
 	if err != nil {
-		return userdto.UserResponse{}, entity.ErrIDGeneration
+		return dto.UserResponse{}, apperrors.ErrIDGeneration
 	}
 
 	user := entity.User{
@@ -71,12 +72,12 @@ func (u *UserUsecase) Create(ctx context.Context, req userdto.CreateUserRequest)
 	}
 
 	if err := u.repo.Create(ctx, user); err != nil {
-		return userdto.UserResponse{}, err
+		return dto.UserResponse{}, err
 	}
 
 	created, err := u.repo.FindByID(ctx, id)
 	if err != nil {
-		return userdto.UserResponse{}, err
+		return dto.UserResponse{}, err
 	}
 
 	return toUserResponse(*created), nil
@@ -87,10 +88,10 @@ func (u *UserUsecase) Login(ctx context.Context, email string, password string) 
 	password = strings.TrimSpace(password)
 
 	if email == "" {
-		return "", entity.ErrEmailRequired
+		return "", apperrors.ErrEmailRequired
 	}
 	if password == "" {
-		return "", entity.ErrPasswordRequired
+		return "", apperrors.ErrPasswordRequired
 	}
 
 	usr, err := u.repo.FindByEmail(ctx, email)
@@ -99,7 +100,7 @@ func (u *UserUsecase) Login(ctx context.Context, email string, password string) 
 	}
 
 	if err := u.passwordHasher.Compare(usr.Password, password); err != nil {
-		return "", entity.ErrPasswordMismatch
+		return "", apperrors.ErrPasswordMismatch
 	}
 
 	token, err := u.jwtGenerator.Generate(usr.ID, usr.Email, usr.Role)
@@ -115,15 +116,15 @@ func (u *UserUsecase) ChangePassword(ctx context.Context, userID string, passwor
 	password = strings.TrimSpace(password)
 
 	if userID == "" {
-		return entity.ErrUserIDRequired
+		return apperrors.ErrUserIDRequired
 	}
 	if password == "" {
-		return entity.ErrPasswordRequired
+		return apperrors.ErrPasswordRequired
 	}
 
 	hash, err := u.passwordHasher.Hash(password)
 	if err != nil {
-		return entity.ErrPasswordHash
+		return apperrors.ErrPasswordHash
 	}
 
 	return u.repo.Update(ctx, userID, &entity.UpdateUser{
@@ -131,21 +132,21 @@ func (u *UserUsecase) ChangePassword(ctx context.Context, userID string, passwor
 	})
 }
 
-func (u *UserUsecase) GetByID(ctx context.Context, id string) (userdto.UserResponse, error) {
+func (u *UserUsecase) GetByID(ctx context.Context, id string) (dto.UserResponse, error) {
 	id = strings.TrimSpace(id)
 	if id == "" {
-		return userdto.UserResponse{}, entity.ErrUserIDRequired
+		return dto.UserResponse{}, apperrors.ErrUserIDRequired
 	}
 
 	usr, err := u.repo.FindByID(ctx, id)
 	if err != nil {
-		return userdto.UserResponse{}, err
+		return dto.UserResponse{}, err
 	}
 
 	return toUserResponse(*usr), nil
 }
 
-func (u *UserUsecase) List(ctx context.Context, page, limit int) ([]userdto.UserResponse, int64, error) {
+func (u *UserUsecase) List(ctx context.Context, page, limit int) ([]dto.UserResponse, int64, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -159,66 +160,66 @@ func (u *UserUsecase) List(ctx context.Context, page, limit int) ([]userdto.User
 		return nil, 0, err
 	}
 
-	responses := make([]userdto.UserResponse, 0, len(users))
-	for _, usr := range users {
-		responses = append(responses, toUserResponse(usr))
+	responses := make([]dto.UserResponse, 0, len(users))
+	for _, user := range users {
+		responses = append(responses, toUserResponse(user))
 	}
 
 	return responses, total, nil
 }
 
-func (u *UserUsecase) Update(ctx context.Context, req userdto.UpdateUserRequest) (userdto.UserResponse, error) {
-	req.ID = strings.TrimSpace(req.ID)
-	if req.ID == "" {
-		return userdto.UserResponse{}, entity.ErrUserIDRequired
+func (u *UserUsecase) Update(ctx context.Context, id string, updates dto.UpdateUserRequest) (dto.UserResponse, error) {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return dto.UserResponse{}, apperrors.ErrUserIDRequired
 	}
 
-	var updates entity.UpdateUser
+	var normalized entity.UpdateUser
 
-	if req.Name != nil {
-		name := strings.TrimSpace(u.typograph.ToTitleCase(*req.Name))
+	if updates.Name != nil {
+		name := strings.TrimSpace(u.typograph.ToTitleCase(*updates.Name))
 		if name != "" {
-			updates.Name = &name
+			normalized.Name = &name
 		}
 	}
 
-	if req.Email != nil {
-		email := strings.TrimSpace(strings.ToLower(*req.Email))
+	if updates.Email != nil {
+		email := strings.TrimSpace(strings.ToLower(*updates.Email))
 		if email != "" {
-			updates.Email = &email
+			normalized.Email = &email
 		}
 	}
 
-	if req.Role != nil {
-		role := strings.TrimSpace(*req.Role)
+	if updates.Role != nil {
+		role := strings.TrimSpace(*updates.Role)
 		if role != "" {
-			updates.Role = &role
+			normalized.Role = &role
 		}
 	}
 
-	if req.Password != nil {
-		password := strings.TrimSpace(*req.Password)
+	if updates.Password != nil {
+		password := strings.TrimSpace(*updates.Password)
 		if password == "" {
-			return userdto.UserResponse{}, entity.ErrPasswordRequired
+			return dto.UserResponse{}, apperrors.ErrPasswordRequired
 		}
 		hash, err := u.passwordHasher.Hash(password)
 		if err != nil {
-			return userdto.UserResponse{}, entity.ErrPasswordHash
+			return dto.UserResponse{}, apperrors.ErrPasswordHash
 		}
-		updates.Password = &hash
+		normalized.Password = &hash
 	}
 
-	if updates.Name == nil && updates.Email == nil && updates.Role == nil && updates.Password == nil {
-		return userdto.UserResponse{}, entity.ErrNoChanges
+	if normalized.Name == nil && normalized.Email == nil && normalized.Role == nil && normalized.Password == nil {
+		return dto.UserResponse{}, apperrors.ErrNoChanges
 	}
 
-	if err := u.repo.Update(ctx, req.ID, &updates); err != nil {
-		return userdto.UserResponse{}, err
+	if err := u.repo.Update(ctx, id, &normalized); err != nil {
+		return dto.UserResponse{}, err
 	}
 
-	updated, err := u.repo.FindByID(ctx, req.ID)
+	updated, err := u.repo.FindByID(ctx, id)
 	if err != nil {
-		return userdto.UserResponse{}, err
+		return dto.UserResponse{}, err
 	}
 
 	return toUserResponse(*updated), nil
@@ -227,13 +228,13 @@ func (u *UserUsecase) Update(ctx context.Context, req userdto.UpdateUserRequest)
 func (u *UserUsecase) Delete(ctx context.Context, id string) error {
 	id = strings.TrimSpace(id)
 	if id == "" {
-		return entity.ErrUserIDRequired
+		return apperrors.ErrUserIDRequired
 	}
 	return u.repo.Delete(ctx, id)
 }
 
-func toUserResponse(user entity.User) userdto.UserResponse {
-	return userdto.UserResponse{
+func toUserResponse(user entity.User) dto.UserResponse {
+	return dto.UserResponse{
 		ID:        user.ID,
 		Name:      user.Name,
 		Email:     user.Email,

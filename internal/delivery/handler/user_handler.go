@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	"github.com/celpung/gocleanarch/internal/delivery/dto"
-	"github.com/celpung/gocleanarch/internal/delivery/httperr"
 	"github.com/celpung/gocleanarch/internal/delivery/middleware"
+	apperrors "github.com/celpung/gocleanarch/internal/domain/errors"
+	usecasedto "github.com/celpung/gocleanarch/internal/usecase/dto"
 	usecaseport "github.com/celpung/gocleanarch/internal/usecase/port/usecase"
-	userdto "github.com/celpung/gocleanarch/internal/usecase/user/dto"
 	"github.com/celpung/gocleanarch/pkg/httpx"
 	"github.com/celpung/gocleanarch/pkg/validator"
 	"github.com/go-chi/chi/v5"
@@ -32,7 +32,14 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := h.usecase.Create(r.Context(), userdto.CreateUserRequest(req)); err != nil {
+	user := usecasedto.CreateUserRequest{
+		Name:     req.Name,
+		Email:    req.Email,
+		Role:     req.Role,
+		Password: req.Password,
+	}
+
+	if _, err := h.usecase.Create(r.Context(), user); err != nil {
 		respondError(w, err)
 		return
 	}
@@ -86,8 +93,13 @@ func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	respUsers := make([]dto.UserResponse, 0, len(users))
+	for _, user := range users {
+		respUsers = append(respUsers, toDeliveryUserResponse(user))
+	}
+
 	resp := dto.ListUsersResponse{
-		Data: users,
+		Data: respUsers,
 		Meta: dto.PagingMeta{
 			Page:       page,
 			Limit:      limit,
@@ -116,15 +128,14 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updateReq := userdto.UpdateUserRequest{
-		ID:       id,
+	updateReq := usecasedto.UpdateUserRequest{
 		Name:     req.Name,
 		Email:    req.Email,
 		Role:     req.Role,
 		Password: req.Password,
 	}
 
-	if _, err := h.usecase.Update(r.Context(), updateReq); err != nil {
+	if _, err := h.usecase.Update(r.Context(), id, updateReq); err != nil {
 		respondError(w, err)
 		return
 	}
@@ -193,6 +204,44 @@ func writeBadRequest(w http.ResponseWriter, msg string) {
 }
 
 func respondError(w http.ResponseWriter, err error) {
-	httpErr := httperr.MapError(err)
-	httpx.WriteJSON(w, httpErr.Status, map[string]string{"message": httpErr.Message})
+	status := http.StatusInternalServerError
+	msg := "internal server error"
+
+	switch {
+	case errors.Is(err, apperrors.ErrEmailExists):
+		status, msg = http.StatusConflict, "email already exists"
+	case errors.Is(err, apperrors.ErrEmailNotFound):
+		status, msg = http.StatusNotFound, "email not found"
+	case errors.Is(err, apperrors.ErrUserNotFound):
+		status, msg = http.StatusNotFound, "user not found"
+	case errors.Is(err, apperrors.ErrPasswordMismatch):
+		status, msg = http.StatusUnauthorized, "wrong password"
+	case errors.Is(err, apperrors.ErrPasswordRequired):
+		status, msg = http.StatusBadRequest, "password is required"
+	case errors.Is(err, apperrors.ErrUserIDRequired):
+		status, msg = http.StatusBadRequest, "user id is required"
+	case errors.Is(err, apperrors.ErrInvalidInput):
+		status, msg = http.StatusBadRequest, "invalid input"
+	case errors.Is(err, apperrors.ErrNoChanges):
+		status, msg = http.StatusBadRequest, "no changes to update"
+	case errors.Is(err, apperrors.ErrNameRequired):
+		status, msg = http.StatusBadRequest, "name is required"
+	case errors.Is(err, apperrors.ErrEmailRequired):
+		status, msg = http.StatusBadRequest, "email is required"
+	case errors.Is(err, apperrors.ErrRoleRequired):
+		status, msg = http.StatusBadRequest, "role is required"
+	}
+
+	httpx.WriteJSON(w, status, map[string]string{"message": msg})
+}
+
+func toDeliveryUserResponse(user usecasedto.UserResponse) dto.UserResponse {
+	return dto.UserResponse{
+		ID:        user.ID,
+		Name:      user.Name,
+		Email:     user.Email,
+		Role:      user.Role,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}
 }

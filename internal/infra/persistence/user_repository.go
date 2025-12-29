@@ -5,7 +5,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/celpung/gocleanarch/internal/entity"
+	"github.com/celpung/gocleanarch/internal/domain/entity"
+	apperrors "github.com/celpung/gocleanarch/internal/domain/errors"
 	"github.com/celpung/gocleanarch/internal/infra/db/model"
 	"github.com/celpung/gocleanarch/internal/usecase/port/repository"
 	"gorm.io/gorm"
@@ -20,7 +21,7 @@ func (r *UserRepository) Create(ctx context.Context, user entity.User) error {
 
 	if err := r.db.WithContext(ctx).Create(&m).Error; err != nil {
 		if isDuplicateErr(err) {
-			return entity.ErrEmailExists
+			return apperrors.ErrEmailExists
 		}
 		return err
 	}
@@ -57,7 +58,7 @@ func (r *UserRepository) FindByID(ctx context.Context, userID string) (*entity.U
 		Where("id = ?", userID).
 		First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, entity.ErrUserNotFound
+			return nil, apperrors.ErrUserNotFound
 		}
 		return nil, err
 	}
@@ -72,7 +73,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*entity
 		Where("email = ?", email).
 		First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, entity.ErrEmailNotFound
+			return nil, apperrors.ErrEmailNotFound
 		}
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*entity
 
 func (r *UserRepository) Update(ctx context.Context, id string, input *entity.UpdateUser) error {
 	if input == nil {
-		return entity.ErrInvalidInput
+		return apperrors.ErrInvalidInput
 	}
 
 	updates := make(map[string]any)
@@ -112,13 +113,13 @@ func (r *UserRepository) Update(ctx context.Context, id string, input *entity.Up
 
 	if result.Error != nil {
 		if input.Email != nil && isDuplicateErr(result.Error) {
-			return entity.ErrEmailExists
+			return apperrors.ErrEmailExists
 		}
 		return result.Error
 	}
 
 	if result.RowsAffected == 0 {
-		return entity.ErrUserNotFound
+		return apperrors.ErrUserNotFound
 	}
 
 	return nil
@@ -133,7 +134,7 @@ func (r *UserRepository) Delete(ctx context.Context, id string) error {
 	}
 
 	if result.RowsAffected == 0 {
-		return entity.ErrUserNotFound
+		return apperrors.ErrUserNotFound
 	}
 
 	return nil
@@ -146,25 +147,21 @@ func NewUserRepository(db *gorm.DB) repository.UserRepository {
 // mappers
 func toModelUser(user entity.User) model.User {
 	return model.User{
-		ID:        user.ID,
-		Name:      user.Name,
-		Email:     user.Email,
-		Password:  user.Password,
-		Role:      user.Role,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
+		ID:       user.ID,
+		Name:     user.Name,
+		Email:    user.Email,
+		Password: user.Password,
+		Role:     user.Role,
 	}
 }
 
 func toEntityUser(user model.User) entity.User {
 	return entity.User{
-		ID:        user.ID,
-		Name:      user.Name,
-		Email:     user.Email,
-		Password:  user.Password,
-		Role:      user.Role,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
+		ID:       user.ID,
+		Name:     user.Name,
+		Email:    user.Email,
+		Password: user.Password,
+		Role:     user.Role,
 	}
 }
 
