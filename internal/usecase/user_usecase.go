@@ -2,16 +2,15 @@ package usecase
 
 import (
 	"context"
-	"net/mail"
 	"strings"
 
 	"github.com/celpung/gocleanarch/internal/domain/entity"
 	apperrors "github.com/celpung/gocleanarch/internal/domain/errors"
+	"github.com/celpung/gocleanarch/internal/domain/value"
 	"github.com/celpung/gocleanarch/internal/usecase/dto"
 	"github.com/celpung/gocleanarch/internal/usecase/port/dependencies"
 	"github.com/celpung/gocleanarch/internal/usecase/port/repository"
 	usecase_port "github.com/celpung/gocleanarch/internal/usecase/port/usecase"
-	"github.com/celpung/gocleanarch/pkg/mapper"
 )
 
 type UserUsecase struct {
@@ -20,7 +19,6 @@ type UserUsecase struct {
 	passwordHasher dependencies.PasswordHasher
 	jwtGenerator   dependencies.JwtGenerator
 	typograph      dependencies.TypoGraph
-	copier         mapper.Copier
 }
 
 func NewUserUsecase(
@@ -29,95 +27,84 @@ func NewUserUsecase(
 	passwordHasher dependencies.PasswordHasher,
 	jwtGenerator dependencies.JwtGenerator,
 	typograph dependencies.TypoGraph,
-	copier mapper.Copier,
 ) usecase_port.UserUsecase {
-	if copier == nil {
-		copier = mapper.DefaultCopier{}
-	}
 	return &UserUsecase{
 		repo:           repo,
 		idGenerator:    idGenerator,
 		passwordHasher: passwordHasher,
 		jwtGenerator:   jwtGenerator,
 		typograph:      typograph,
-		copier:         copier,
 	}
 }
 
-func (u *UserUsecase) Create(ctx context.Context, req dto.CreateUserRequest) (dto.UserResponse, error) {
-	req.Name = strings.TrimSpace(u.typograph.ToTitleCase(req.Name))
-	req.Email = strings.TrimSpace(strings.ToLower(req.Email))
-	req.Role = strings.TrimSpace(req.Role)
-	req.Password = strings.TrimSpace(req.Password)
-
-	switch {
-	case req.Name == "":
-		return dto.UserResponse{}, apperrors.ErrNameRequired
-	case req.Email == "":
-		return dto.UserResponse{}, apperrors.ErrEmailRequired
-	case !isValidEmail(req.Email):
-		return dto.UserResponse{}, apperrors.ErrInvalidEmail
-	case req.Role == "":
-		return dto.UserResponse{}, apperrors.ErrRoleRequired
-	case req.Password == "":
-		return dto.UserResponse{}, apperrors.ErrPasswordRequired
+func (u *UserUsecase) Create(ctx context.Context, input dto.CreateUserInput) (entity.User, error) {
+	name := strings.TrimSpace(u.typograph.ToTitleCase(input.Name))
+	if name == "" {
+		return entity.User{}, apperrors.ErrNameRequired
 	}
 
-	hash, err := u.passwordHasher.Hash(req.Password)
+	email, err := value.NewEmail(input.Email)
 	if err != nil {
-		return dto.UserResponse{}, apperrors.ErrPasswordHash
+		return entity.User{}, err
+	}
+
+	role, err := value.NewRole(input.Role)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	password, err := value.NewPassword(input.Password)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	hash, err := u.passwordHasher.Hash(password.String())
+	if err != nil {
+		return entity.User{}, apperrors.ErrPasswordHash
 	}
 
 	id, err := u.idGenerator.NewID()
 	if err != nil {
-		return dto.UserResponse{}, apperrors.ErrIDGeneration
+		return entity.User{}, apperrors.ErrIDGeneration
 	}
 
 	user := entity.User{
 		ID:       id,
-		Name:     req.Name,
-		Email:    req.Email,
-		Role:     req.Role,
+		Name:     name,
+		Email:    email.String(),
+		Role:     role.String(),
 		Password: hash,
 	}
 
 	if err := u.repo.Create(ctx, user); err != nil {
-		return dto.UserResponse{}, err
+		return entity.User{}, err
 	}
 
 	created, err := u.repo.FindByID(ctx, id)
 	if err != nil {
-		return dto.UserResponse{}, err
+		return entity.User{}, err
 	}
 
-	resp, err := u.toUserResponse(*created)
-	if err != nil {
-		return dto.UserResponse{}, err
-	}
-
-	return resp, nil
+	return *created, nil
 }
 
 func (u *UserUsecase) Login(ctx context.Context, email string, password string) (string, error) {
-	email = strings.TrimSpace(strings.ToLower(email))
-	password = strings.TrimSpace(password)
-
-	if email == "" {
-		return "", apperrors.ErrEmailRequired
-	}
-	if !isValidEmail(email) {
-		return "", apperrors.ErrInvalidEmail
-	}
-	if password == "" {
-		return "", apperrors.ErrPasswordRequired
-	}
-
-	usr, err := u.repo.FindByEmail(ctx, email)
+	emailVO, err := value.NewEmail(email)
 	if err != nil {
 		return "", err
 	}
 
-	if err := u.passwordHasher.Compare(usr.Password, password); err != nil {
+	passwordVO, err := value.NewPassword(password)
+	if err != nil {
+		return "", err
+	}
+
+	usr, err := u.repo.FindByEmail(ctx, emailVO.String())
+	if err != nil {
+		return "", err
+	}
+
+	if err := u.passwordHasher.Compare(usr.Password, passwordVO.String()); err != nil {
 		return "", apperrors.ErrPasswordMismatch
 	}
 
@@ -131,16 +118,16 @@ func (u *UserUsecase) Login(ctx context.Context, email string, password string) 
 
 func (u *UserUsecase) ChangePassword(ctx context.Context, userID string, password string) error {
 	userID = strings.TrimSpace(userID)
-	password = strings.TrimSpace(password)
-
 	if userID == "" {
 		return apperrors.ErrUserIDRequired
 	}
-	if password == "" {
-		return apperrors.ErrPasswordRequired
+
+	passwordVO, err := value.NewPassword(password)
+	if err != nil {
+		return err
 	}
 
-	hash, err := u.passwordHasher.Hash(password)
+	hash, err := u.passwordHasher.Hash(passwordVO.String())
 	if err != nil {
 		return apperrors.ErrPasswordHash
 	}
@@ -150,25 +137,21 @@ func (u *UserUsecase) ChangePassword(ctx context.Context, userID string, passwor
 	})
 }
 
-func (u *UserUsecase) GetByID(ctx context.Context, id string) (dto.UserResponse, error) {
+func (u *UserUsecase) GetByID(ctx context.Context, id string) (entity.User, error) {
 	id = strings.TrimSpace(id)
 	if id == "" {
-		return dto.UserResponse{}, apperrors.ErrUserIDRequired
+		return entity.User{}, apperrors.ErrUserIDRequired
 	}
 
 	usr, err := u.repo.FindByID(ctx, id)
 	if err != nil {
-		return dto.UserResponse{}, err
+		return entity.User{}, err
 	}
 
-	resp, err := u.toUserResponse(*usr)
-	if err != nil {
-		return dto.UserResponse{}, err
-	}
-	return resp, nil
+	return *usr, nil
 }
 
-func (u *UserUsecase) List(ctx context.Context, page, limit int) ([]dto.UserResponse, int64, error) {
+func (u *UserUsecase) List(ctx context.Context, page, limit int) ([]entity.User, int64, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -182,26 +165,13 @@ func (u *UserUsecase) List(ctx context.Context, page, limit int) ([]dto.UserResp
 		return nil, 0, err
 	}
 
-	mapped, err := mapper.MapStructListDTOWith[entity.User, dto.UserResponse](u.copier, users)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	// flatten []*dto.UserResponse to []dto.UserResponse
-	responses := make([]dto.UserResponse, 0, len(mapped))
-	for _, m := range mapped {
-		if m != nil {
-			responses = append(responses, *m)
-		}
-	}
-
-	return responses, total, nil
+	return users, total, nil
 }
 
-func (u *UserUsecase) Update(ctx context.Context, id string, updates dto.UpdateUserRequest) (dto.UserResponse, error) {
+func (u *UserUsecase) Update(ctx context.Context, id string, updates dto.UpdateUserInput) (entity.User, error) {
 	id = strings.TrimSpace(id)
 	if id == "" {
-		return dto.UserResponse{}, apperrors.ErrUserIDRequired
+		return entity.User{}, apperrors.ErrUserIDRequired
 	}
 
 	var normalized entity.UpdateUser
@@ -214,53 +184,49 @@ func (u *UserUsecase) Update(ctx context.Context, id string, updates dto.UpdateU
 	}
 
 	if updates.Email != nil {
-		email := strings.TrimSpace(strings.ToLower(*updates.Email))
-		if email != "" {
-			if !isValidEmail(email) {
-				return dto.UserResponse{}, apperrors.ErrInvalidEmail
-			}
-			normalized.Email = &email
+		email, err := value.NewEmail(*updates.Email)
+		if err != nil {
+			return entity.User{}, err
 		}
+		emailStr := email.String()
+		normalized.Email = &emailStr
 	}
 
 	if updates.Role != nil {
-		role := strings.TrimSpace(*updates.Role)
-		if role != "" {
-			normalized.Role = &role
+		role, err := value.NewRole(*updates.Role)
+		if err != nil {
+			return entity.User{}, err
 		}
+		roleStr := role.String()
+		normalized.Role = &roleStr
 	}
 
 	if updates.Password != nil {
-		password := strings.TrimSpace(*updates.Password)
-		if password == "" {
-			return dto.UserResponse{}, apperrors.ErrPasswordRequired
-		}
-		hash, err := u.passwordHasher.Hash(password)
+		password, err := value.NewPassword(*updates.Password)
 		if err != nil {
-			return dto.UserResponse{}, apperrors.ErrPasswordHash
+			return entity.User{}, err
+		}
+		hash, err := u.passwordHasher.Hash(password.String())
+		if err != nil {
+			return entity.User{}, apperrors.ErrPasswordHash
 		}
 		normalized.Password = &hash
 	}
 
 	if normalized.Name == nil && normalized.Email == nil && normalized.Role == nil && normalized.Password == nil {
-		return dto.UserResponse{}, apperrors.ErrNoChanges
+		return entity.User{}, apperrors.ErrNoChanges
 	}
 
 	if err := u.repo.Update(ctx, id, &normalized); err != nil {
-		return dto.UserResponse{}, err
+		return entity.User{}, err
 	}
 
 	updated, err := u.repo.FindByID(ctx, id)
 	if err != nil {
-		return dto.UserResponse{}, err
+		return entity.User{}, err
 	}
 
-	resp, err := u.toUserResponse(*updated)
-	if err != nil {
-		return dto.UserResponse{}, err
-	}
-
-	return resp, nil
+	return *updated, nil
 }
 
 func (u *UserUsecase) Delete(ctx context.Context, id string) error {
@@ -269,17 +235,4 @@ func (u *UserUsecase) Delete(ctx context.Context, id string) error {
 		return apperrors.ErrUserIDRequired
 	}
 	return u.repo.Delete(ctx, id)
-}
-
-func (u *UserUsecase) toUserResponse(user entity.User) (dto.UserResponse, error) {
-	var resp dto.UserResponse
-	if err := u.copier.Copy(&resp, &user); err != nil {
-		return dto.UserResponse{}, err
-	}
-	return resp, nil
-}
-
-func isValidEmail(email string) bool {
-	_, err := mail.ParseAddress(email)
-	return err == nil
 }

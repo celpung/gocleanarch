@@ -16,6 +16,8 @@ var (
 	ErrPasswordMismatch = stderrs.New("user: wrong password")
 	ErrIDGeneration     = stderrs.New("user: failed to generate id")
 	ErrRoleRequired     = stderrs.New("user: role is required")
+	ErrInvalidRole      = stderrs.New("user: invalid role")
 	ErrNameRequired     = stderrs.New("user: name is required")
 	ErrEmailRequired    = stderrs.New("user: email is required")
+	ErrWeakPassword     = stderrs.New("user: password is too weak")
 )

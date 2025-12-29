@@ -13,21 +13,16 @@ import (
 	usecasedto "github.com/celpung/gocleanarch/internal/usecase/dto"
 	usecaseport "github.com/celpung/gocleanarch/internal/usecase/port/usecase"
 	"github.com/celpung/gocleanarch/pkg/httpx"
-	"github.com/celpung/gocleanarch/pkg/mapper"
 	"github.com/celpung/gocleanarch/pkg/validator"
 	"github.com/go-chi/chi/v5"
 )
 
 type UserHandler struct {
 	usecase usecaseport.UserUsecase
-	copier  mapper.Copier
 }
 
-func NewUserHandler(usecase usecaseport.UserUsecase, copier mapper.Copier) *UserHandler {
-	if copier == nil {
-		copier = mapper.DefaultCopier{}
-	}
-	return &UserHandler{usecase: usecase, copier: copier}
+func NewUserHandler(usecase usecaseport.UserUsecase) *UserHandler {
+	return &UserHandler{usecase: usecase}
 }
 
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +32,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := usecasedto.CreateUserRequest{
+	user := usecasedto.CreateUserInput{
 		Name:     req.Name,
 		Email:    req.Email,
 		Role:     req.Role,
@@ -98,17 +93,16 @@ func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mapped, err := mapper.MapStructListDTOWith[usecasedto.UserResponse, dto.UserResponse](h.copier, users)
-	if err != nil {
-		writeBadRequest(w, "failed to map user response")
-		return
-	}
-
-	respUsers := make([]dto.UserResponse, 0, len(mapped))
-	for _, u := range mapped {
-		if u != nil {
-			respUsers = append(respUsers, *u)
-		}
+	respUsers := make([]dto.UserResponse, 0, len(users))
+	for _, u := range users {
+		respUsers = append(respUsers, dto.UserResponse{
+			ID:        u.ID,
+			Email:     u.Email,
+			Name:      u.Name,
+			Role:      u.Role,
+			CreatedAt: u.CreatedAt,
+			UpdatedAt: u.UpdatedAt,
+		})
 	}
 
 	resp := dto.ListUsersResponse{
@@ -141,7 +135,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updateReq := usecasedto.UpdateUserRequest{
+	updateReq := usecasedto.UpdateUserInput{
 		Name:     req.Name,
 		Email:    req.Email,
 		Role:     req.Role,
@@ -245,15 +239,11 @@ func respondError(w http.ResponseWriter, err error) {
 		status, msg = http.StatusBadRequest, "invalid email"
 	case errors.Is(err, apperrors.ErrRoleRequired):
 		status, msg = http.StatusBadRequest, "role is required"
+	case errors.Is(err, apperrors.ErrInvalidRole):
+		status, msg = http.StatusBadRequest, "invalid role"
+	case errors.Is(err, apperrors.ErrWeakPassword):
+		status, msg = http.StatusBadRequest, "password is too weak"
 	}
 
 	httpx.WriteJSON(w, status, map[string]string{"message": msg})
-}
-
-func (h *UserHandler) toDeliveryUserResponse(user usecasedto.UserResponse) (dto.UserResponse, error) {
-	var resp dto.UserResponse
-	if err := h.copier.Copy(&resp, &user); err != nil {
-		return dto.UserResponse{}, err
-	}
-	return resp, nil
 }
