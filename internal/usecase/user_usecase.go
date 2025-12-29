@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"net/mail"
 	"strings"
 
 	"github.com/celpung/gocleanarch/internal/domain/entity"
@@ -54,6 +55,8 @@ func (u *UserUsecase) Create(ctx context.Context, req dto.CreateUserRequest) (dt
 		return dto.UserResponse{}, apperrors.ErrNameRequired
 	case req.Email == "":
 		return dto.UserResponse{}, apperrors.ErrEmailRequired
+	case !isValidEmail(req.Email):
+		return dto.UserResponse{}, apperrors.ErrInvalidEmail
 	case req.Role == "":
 		return dto.UserResponse{}, apperrors.ErrRoleRequired
 	case req.Password == "":
@@ -101,6 +104,9 @@ func (u *UserUsecase) Login(ctx context.Context, email string, password string) 
 
 	if email == "" {
 		return "", apperrors.ErrEmailRequired
+	}
+	if !isValidEmail(email) {
+		return "", apperrors.ErrInvalidEmail
 	}
 	if password == "" {
 		return "", apperrors.ErrPasswordRequired
@@ -210,6 +216,9 @@ func (u *UserUsecase) Update(ctx context.Context, id string, updates dto.UpdateU
 	if updates.Email != nil {
 		email := strings.TrimSpace(strings.ToLower(*updates.Email))
 		if email != "" {
+			if !isValidEmail(email) {
+				return dto.UserResponse{}, apperrors.ErrInvalidEmail
+			}
 			normalized.Email = &email
 		}
 	}
@@ -268,4 +277,9 @@ func (u *UserUsecase) toUserResponse(user entity.User) (dto.UserResponse, error)
 		return dto.UserResponse{}, err
 	}
 	return resp, nil
+}
+
+func isValidEmail(email string) bool {
+	_, err := mail.ParseAddress(email)
+	return err == nil
 }

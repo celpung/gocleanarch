@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/celpung/gocleanarch/internal/usecase/port/dependencies"
-	"github.com/golang-jwt/jwt/v4"
 )
 
 type ctxKey string
@@ -27,13 +26,6 @@ const (
 	Admin Role = "ADMIN"
 	User  Role = "USER"
 )
-
-type Claims struct {
-	ID    string `json:"id"`
-	Email string `json:"email"`
-	Role  string `json:"role"`
-	jwt.RegisteredClaims
-}
 
 func writeJSONError(w http.ResponseWriter, status int, msg string) {
 	w.Header().Set("Content-Type", "application/json")
@@ -68,29 +60,29 @@ func AuthMiddleware(verifier dependencies.TokenVerifier, allowedRoles ...Role) f
 				return
 			}
 
-			claims := &Claims{}
-			if err := verifier.Verify(tokStr, claims); err != nil {
+			claims, err := verifier.Verify(tokStr)
+			if err != nil {
 				writeJSONError(w, http.StatusUnauthorized, "unauthorized")
 				return
 			}
 
-			if isExpired(claims, 30*time.Second) {
+			if claims.IsExpired(30 * time.Second) {
 				writeJSONError(w, http.StatusUnauthorized, "token expired")
 				return
 			}
-			if notValidYet(claims, 30*time.Second) {
+			if claims.NotValidYet(30 * time.Second) {
 				writeJSONError(w, http.StatusUnauthorized, "token not valid yet")
 				return
 			}
 
-			userRole := strings.TrimSpace(claims.Role)
+			userRole := strings.TrimSpace(claims.Role())
 			if !roleAllowed(userRole, allowedRoles) {
 				writeJSONError(w, http.StatusForbidden, "forbidden")
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), ctxKeyID, claims.ID)
-			ctx = context.WithValue(ctx, ctxKeyEmail, claims.Email)
+			ctx := context.WithValue(r.Context(), ctxKeyID, claims.UserID())
+			ctx = context.WithValue(ctx, ctxKeyEmail, claims.Email())
 			ctx = context.WithValue(ctx, ctxKeyRole, userRole)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
@@ -122,14 +114,6 @@ func UserEmailFromContext(ctx context.Context) (string, bool) {
 func UserRoleFromContext(ctx context.Context) (Role, bool) {
 	role, ok := ctx.Value(ctxKeyRole).(string)
 	return Role(role), ok
-}
-
-func isExpired(claims *Claims, leeway time.Duration) bool {
-	return claims.ExpiresAt != nil && !claims.ExpiresAt.After(time.Now().Add(-leeway))
-}
-
-func notValidYet(claims *Claims, leeway time.Duration) bool {
-	return claims.NotBefore != nil && claims.NotBefore.After(time.Now().Add(leeway))
 }
 
 func roleAllowed(userRole string, allowed []Role) bool {

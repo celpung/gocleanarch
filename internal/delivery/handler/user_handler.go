@@ -241,6 +241,8 @@ func respondError(w http.ResponseWriter, err error) {
 		status, msg = http.StatusBadRequest, "name is required"
 	case errors.Is(err, apperrors.ErrEmailRequired):
 		status, msg = http.StatusBadRequest, "email is required"
+	case errors.Is(err, apperrors.ErrInvalidEmail):
+		status, msg = http.StatusBadRequest, "invalid email"
 	case errors.Is(err, apperrors.ErrRoleRequired):
 		status, msg = http.StatusBadRequest, "role is required"
 	}

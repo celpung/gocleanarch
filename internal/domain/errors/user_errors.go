@@ -10,6 +10,7 @@ var (
 	ErrUserNotFound     = stderrs.New("user: user not found")
 	ErrEmailExists      = stderrs.New("user: email already exists")
 	ErrEmailNotFound    = stderrs.New("user: email not found")
+	ErrInvalidEmail     = stderrs.New("user: invalid email")
 	ErrPasswordRequired = stderrs.New("user: password is required")
 	ErrPasswordHash     = stderrs.New("user: failed to hash password")
 	ErrPasswordMismatch = stderrs.New("user: wrong password")
