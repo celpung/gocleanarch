@@ -9,10 +9,10 @@ import (
 
 	"github.com/celpung/gocleanarch/internal/delivery/handler"
 	"github.com/celpung/gocleanarch/internal/delivery/router"
-	"github.com/celpung/gocleanarch/internal/infra/auth"
 	"github.com/celpung/gocleanarch/internal/infra/db/mysql"
+	"github.com/celpung/gocleanarch/internal/infra/dependencies/auth"
+	"github.com/celpung/gocleanarch/internal/infra/dependencies/identity"
 	"github.com/celpung/gocleanarch/internal/infra/environment"
-	"github.com/celpung/gocleanarch/internal/infra/identity"
 	"github.com/celpung/gocleanarch/internal/infra/persistence"
 	"github.com/celpung/gocleanarch/internal/usecase"
 	"github.com/celpung/gocleanarch/pkg/typograph"
