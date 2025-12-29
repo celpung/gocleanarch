@@ -20,3 +20,8 @@ func Migrate(db *gorm.DB) error {
 
 	return nil
 }
+
+// Run is an alias kept for clarity at the boot layer.
+func Run(db *gorm.DB) error {
+	return Migrate(db)
+}

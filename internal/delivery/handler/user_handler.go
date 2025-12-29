@@ -8,9 +8,10 @@ import (
 	"strings"
 
 	"github.com/celpung/gocleanarch/internal/delivery/dto"
+	"github.com/celpung/gocleanarch/internal/delivery/httperr"
 	"github.com/celpung/gocleanarch/internal/delivery/middleware"
-	"github.com/celpung/gocleanarch/internal/entity"
 	usecaseport "github.com/celpung/gocleanarch/internal/usecase/port/usecase"
+	userdto "github.com/celpung/gocleanarch/internal/usecase/user/dto"
 	"github.com/celpung/gocleanarch/pkg/httpx"
 	"github.com/celpung/gocleanarch/pkg/validator"
 	"github.com/go-chi/chi/v5"
@@ -25,21 +26,14 @@ func NewUserHandler(usecase usecaseport.UserUsecase) *UserHandler {
 }
 
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
-	var req dto.UserDto
+	var req dto.RegisterRequest
 	if err := decodeAndValidate(r, &req); err != nil {
 		writeBadRequest(w, err.Error())
 		return
 	}
 
-	user := entity.User{
-		Name:     req.Name,
-		Email:    req.Email,
-		Password: req.Password,
-		Role:     req.Role,
-	}
-
-	if err := h.usecase.Register(r.Context(), user); err != nil {
-		respondUserError(w, err)
+	if _, err := h.usecase.Create(r.Context(), userdto.CreateUserRequest(req)); err != nil {
+		respondError(w, err)
 		return
 	}
 
@@ -55,7 +49,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	token, err := h.usecase.Login(r.Context(), req.Email, req.Password)
 	if err != nil {
-		respondUserError(w, err)
+		respondError(w, err)
 		return
 	}
 
@@ -76,7 +70,7 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.usecase.ChangePassword(r.Context(), userID, req.Password); err != nil {
-		respondUserError(w, err)
+		respondError(w, err)
 		return
 	}
 
@@ -86,14 +80,14 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	page, limit := parsePagination(r)
 
-	users, total, err := h.usecase.UserLists(r.Context(), page, limit)
+	users, total, err := h.usecase.List(r.Context(), page, limit)
 	if err != nil {
-		respondUserError(w, err)
+		respondError(w, err)
 		return
 	}
 
 	resp := dto.ListUsersResponse{
-		Data: usersToResponses(users),
+		Data: users,
 		Meta: dto.PagingMeta{
 			Page:       page,
 			Limit:      limit,
@@ -117,19 +111,21 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Name == nil && req.Email == nil && req.Role == nil {
+	if req.Name == nil && req.Email == nil && req.Role == nil && req.Password == nil {
 		writeBadRequest(w, "no changes to update")
 		return
 	}
 
-	input := &entity.UpdateUser{
-		Name:  req.Name,
-		Email: req.Email,
-		Role:  req.Role,
+	updateReq := userdto.UpdateUserRequest{
+		ID:       id,
+		Name:     req.Name,
+		Email:    req.Email,
+		Role:     req.Role,
+		Password: req.Password,
 	}
 
-	if err := h.usecase.UpdateUser(r.Context(), id, input); err != nil {
-		respondUserError(w, err)
+	if _, err := h.usecase.Update(r.Context(), updateReq); err != nil {
+		respondError(w, err)
 		return
 	}
 
@@ -144,7 +140,7 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.usecase.Delete(r.Context(), id); err != nil {
-		respondUserError(w, err)
+		respondError(w, err)
 		return
 	}
 
@@ -196,60 +192,7 @@ func writeBadRequest(w http.ResponseWriter, msg string) {
 	httpx.WriteJSON(w, http.StatusBadRequest, map[string]string{"message": msg})
 }
 
-func respondUserError(w http.ResponseWriter, err error) {
-	if err == nil {
-		return
-	}
-
-	status := http.StatusInternalServerError
-	message := "internal server error"
-
-	switch {
-	case errors.Is(err, entity.ErrEmailExists):
-		status = http.StatusConflict
-		message = "email already exists"
-
-	case errors.Is(err, entity.ErrEmailNotFound):
-		status = http.StatusNotFound
-		message = "email not found"
-
-	case errors.Is(err, entity.ErrUserNotFound):
-		status = http.StatusNotFound
-		message = "user not found"
-
-	case errors.Is(err, entity.ErrPasswordMismatch):
-		status = http.StatusUnauthorized
-		message = "wrong password"
-
-	case errors.Is(err, entity.ErrPasswordRequired):
-		status = http.StatusBadRequest
-		message = "password is required"
-
-	case errors.Is(err, entity.ErrUserIDRequired):
-		status = http.StatusBadRequest
-		message = "user id is required"
-
-	case errors.Is(err, entity.ErrInvalidInput):
-		status = http.StatusBadRequest
-		message = "invalid input"
-
-	case errors.Is(err, entity.ErrNoChanges):
-		status = http.StatusBadRequest
-		message = "no changes to update"
-	}
-
-	httpx.WriteJSON(w, status, map[string]string{"message": message})
-}
-
-func usersToResponses(users []entity.User) []dto.UserResponse {
-	result := make([]dto.UserResponse, 0, len(users))
-	for _, u := range users {
-		result = append(result, dto.UserResponse{
-			ID:    u.ID,
-			Name:  u.Name,
-			Email: u.Email,
-			Role:  u.Role,
-		})
-	}
-	return result
+func respondError(w http.ResponseWriter, err error) {
+	httpErr := httperr.MapError(err)
+	httpx.WriteJSON(w, httpErr.Status, map[string]string{"message": httpErr.Message})
 }

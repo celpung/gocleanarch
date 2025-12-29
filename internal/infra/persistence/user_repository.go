@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/celpung/gocleanarch/internal/entity"
 	"github.com/celpung/gocleanarch/internal/infra/db/model"
@@ -18,7 +19,7 @@ func (r *UserRepository) Create(ctx context.Context, user entity.User) error {
 	m := toModelUser(user)
 
 	if err := r.db.WithContext(ctx).Create(&m).Error; err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
+		if isDuplicateErr(err) {
 			return entity.ErrEmailExists
 		}
 		return err
@@ -82,7 +83,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*entity
 
 func (r *UserRepository) Update(ctx context.Context, id string, input *entity.UpdateUser) error {
 	if input == nil {
-		return nil
+		return entity.ErrInvalidInput
 	}
 
 	updates := make(map[string]any)
@@ -110,7 +111,7 @@ func (r *UserRepository) Update(ctx context.Context, id string, input *entity.Up
 		Updates(updates)
 
 	if result.Error != nil {
-		if input.Email != nil && errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+		if input.Email != nil && isDuplicateErr(result.Error) {
 			return entity.ErrEmailExists
 		}
 		return result.Error
@@ -145,21 +146,25 @@ func NewUserRepository(db *gorm.DB) repository.UserRepository {
 // mappers
 func toModelUser(user entity.User) model.User {
 	return model.User{
-		ID:       user.ID,
-		Name:     user.Name,
-		Email:    user.Email,
-		Password: user.Password,
-		Role:     user.Role,
+		ID:        user.ID,
+		Name:      user.Name,
+		Email:     user.Email,
+		Password:  user.Password,
+		Role:      user.Role,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}
 }
 
 func toEntityUser(user model.User) entity.User {
 	return entity.User{
-		ID:       user.ID,
-		Name:     user.Name,
-		Email:    user.Email,
-		Password: user.Password,
-		Role:     user.Role,
+		ID:        user.ID,
+		Name:      user.Name,
+		Email:     user.Email,
+		Password:  user.Password,
+		Role:      user.Role,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}
 }
 
@@ -169,4 +174,17 @@ func toEntityUsers(users []model.User) []entity.User {
 		result = append(result, toEntityUser(user))
 	}
 	return result
+}
+
+func isDuplicateErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		return true
+	}
+
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "unique constraint failed") ||
+		strings.Contains(msg, "duplicate entry")
 }

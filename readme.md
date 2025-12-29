@@ -33,3 +33,25 @@ cd gocleanarch
 
 # Download and tidy up the dependencies
 go mod tidy
+```
+
+### 🗄️ Database migrations & seed
+
+- Run migrations explicitly: `go run ./cmd/migration`
+- The API also runs migrations on boot before serving traffic.
+- Optional sample data: `go run ./cmd/seed` (includes migrations).
+
+### ▶️ Run the API
+
+```bash
+go run ./cmd/api
+```
+
+### 🧪 Testing
+
+- Unit tests use in-memory adapters for speed and isolation.
+- Integration tests live under `test/integration` and use SQLite.
+
+```bash
+go test ./...
+```

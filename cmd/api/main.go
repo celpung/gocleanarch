@@ -9,6 +9,7 @@ import (
 
 	"github.com/celpung/gocleanarch/internal/delivery/handler"
 	"github.com/celpung/gocleanarch/internal/delivery/router"
+	"github.com/celpung/gocleanarch/internal/infra/db/migration"
 	"github.com/celpung/gocleanarch/internal/infra/db/mysql"
 	"github.com/celpung/gocleanarch/internal/infra/dependencies/auth"
 	"github.com/celpung/gocleanarch/internal/infra/dependencies/identity"
@@ -48,6 +49,10 @@ func main() {
 	}
 
 	db := database.DB
+
+	if err := migration.Run(db); err != nil {
+		log.Fatalf("failed to run migrations: %v", err)
+	}
 
 	// ROUTER
 	r := chi.NewRouter()

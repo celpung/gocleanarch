@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/celpung/gocleanarch/internal/infra/db/migration"
 	"github.com/celpung/gocleanarch/internal/infra/db/mysql"
 	"github.com/celpung/gocleanarch/internal/infra/db/seeder"
 	"github.com/celpung/gocleanarch/internal/infra/environment"
@@ -22,6 +23,10 @@ func main() {
 	database, err := mysql.New(cfg)
 	if err != nil {
 		log.Fatalf("db init failed: %v", err)
+	}
+
+	if err := migration.Run(database.DB); err != nil {
+		log.Fatalf("migration failed: %v", err)
 	}
 
 	if err := seeder.Seed(database.DB); err != nil {

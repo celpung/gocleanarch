@@ -1,11 +1,8 @@
 package dto
 
-type UserDto struct {
-	Name     string `json:"name" validate:"required"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=8"`
-	Role     string `json:"role" validate:"required"`
-}
+import userdto "github.com/celpung/gocleanarch/internal/usecase/user/dto"
+
+type RegisterRequest = userdto.CreateUserRequest
 
 type LoginRequest struct {
 	Email    string `json:"email" validate:"required,email"`
@@ -17,9 +14,10 @@ type ChangePasswordRequest struct {
 }
 
 type UpdateUserRequest struct {
-	Name  *string `json:"name" validate:"omitempty,min=2"`
-	Email *string `json:"email" validate:"omitempty,email"`
-	Role  *string `json:"role" validate:"omitempty,min=2"`
+	Name     *string `json:"name" validate:"omitempty,min=2"`
+	Email    *string `json:"email" validate:"omitempty,email"`
+	Role     *string `json:"role" validate:"omitempty,min=2"`
+	Password *string `json:"password" validate:"omitempty,min=8"`
 }
 
 type PagingMeta struct {
@@ -28,12 +26,7 @@ type PagingMeta struct {
 	TotalItems int64 `json:"total_items"`
 }
 
-type UserResponse struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Role  string `json:"role"`
-}
+type UserResponse = userdto.UserResponse
 
 type ListUsersResponse struct {
 	Data []UserResponse `json:"data"`
