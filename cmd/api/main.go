@@ -9,13 +9,13 @@ import (
 
 	"github.com/celpung/gocleanarch/internal/delivery/handler"
 	"github.com/celpung/gocleanarch/internal/delivery/router"
-	"github.com/celpung/gocleanarch/internal/infra/db/migration"
-	"github.com/celpung/gocleanarch/internal/infra/db/mysql"
+	"github.com/celpung/gocleanarch/internal/infra/db"
 	"github.com/celpung/gocleanarch/internal/infra/dependencies/auth"
 	"github.com/celpung/gocleanarch/internal/infra/dependencies/identity"
 	"github.com/celpung/gocleanarch/internal/infra/environment"
 	"github.com/celpung/gocleanarch/internal/infra/persistence"
 	"github.com/celpung/gocleanarch/internal/usecase"
+	"github.com/celpung/gocleanarch/pkg/mapper"
 	"github.com/celpung/gocleanarch/pkg/typograph"
 
 	"github.com/go-chi/chi/v5"
@@ -34,24 +34,11 @@ func main() {
 		panic("invalid MODE environment")
 	}
 
-	// DATABASE BOOTSTRAP
-	dbCfg := mysql.Config{
-		Username: env.DB_USERNAME,
-		Password: env.DB_PASSWORD,
-		Host:     env.DB_HOST,
-		Port:     env.DB_PORT,
-		Database: env.DB_NAME,
-	}
-
-	database, err := mysql.New(dbCfg)
+	// DATABASE BOOTSTRAP (dialect + migration handled via provider)
+	dbProvider := db.DefaultProvider()
+	dbConn, err := dbProvider.Connect(env)
 	if err != nil {
 		log.Fatalf("failed to initialize database: %v", err)
-	}
-
-	db := database.DB
-
-	if err := migration.Run(db); err != nil {
-		log.Fatalf("failed to run migrations: %v", err)
 	}
 
 	// ROUTER
@@ -84,17 +71,19 @@ func main() {
 	)
 	r.Handle("/images/*", fileServer)
 
-	userRepo := persistence.NewUserRepository(db)
+	userRepo := persistence.NewUserRepository(dbConn)
 	jwtGenerator := auth.NewJwtGenerator(env.JWT_TOKEN)
 	jwtVerifier := auth.NewJwtVerifier(env.JWT_TOKEN)
+	copier := mapper.DefaultCopier{}
 	userUsecase := usecase.NewUserUsecase(
 		userRepo,
 		identity.UUIDGenerator{},
 		auth.BcryptHasher{},
 		jwtGenerator,
 		typograph.Typograph{},
+		copier,
 	)
-	userHandler := handler.NewUserHandler(userUsecase)
+	userHandler := handler.NewUserHandler(userUsecase, copier)
 
 	router.UserRouter(r, jwtVerifier, userHandler)
 

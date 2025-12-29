@@ -10,6 +10,7 @@ import (
 	"github.com/celpung/gocleanarch/internal/usecase/port/dependencies"
 	"github.com/celpung/gocleanarch/internal/usecase/port/repository"
 	usecase_port "github.com/celpung/gocleanarch/internal/usecase/port/usecase"
+	"github.com/celpung/gocleanarch/pkg/mapper"
 )
 
 type UserUsecase struct {
@@ -18,6 +19,7 @@ type UserUsecase struct {
 	passwordHasher dependencies.PasswordHasher
 	jwtGenerator   dependencies.JwtGenerator
 	typograph      dependencies.TypoGraph
+	copier         mapper.Copier
 }
 
 func NewUserUsecase(
@@ -26,13 +28,18 @@ func NewUserUsecase(
 	passwordHasher dependencies.PasswordHasher,
 	jwtGenerator dependencies.JwtGenerator,
 	typograph dependencies.TypoGraph,
+	copier mapper.Copier,
 ) usecase_port.UserUsecase {
+	if copier == nil {
+		copier = mapper.DefaultCopier{}
+	}
 	return &UserUsecase{
 		repo:           repo,
 		idGenerator:    idGenerator,
 		passwordHasher: passwordHasher,
 		jwtGenerator:   jwtGenerator,
 		typograph:      typograph,
+		copier:         copier,
 	}
 }
 
@@ -80,7 +87,12 @@ func (u *UserUsecase) Create(ctx context.Context, req dto.CreateUserRequest) (dt
 		return dto.UserResponse{}, err
 	}
 
-	return toUserResponse(*created), nil
+	resp, err := u.toUserResponse(*created)
+	if err != nil {
+		return dto.UserResponse{}, err
+	}
+
+	return resp, nil
 }
 
 func (u *UserUsecase) Login(ctx context.Context, email string, password string) (string, error) {
@@ -143,7 +155,11 @@ func (u *UserUsecase) GetByID(ctx context.Context, id string) (dto.UserResponse,
 		return dto.UserResponse{}, err
 	}
 
-	return toUserResponse(*usr), nil
+	resp, err := u.toUserResponse(*usr)
+	if err != nil {
+		return dto.UserResponse{}, err
+	}
+	return resp, nil
 }
 
 func (u *UserUsecase) List(ctx context.Context, page, limit int) ([]dto.UserResponse, int64, error) {
@@ -160,9 +176,17 @@ func (u *UserUsecase) List(ctx context.Context, page, limit int) ([]dto.UserResp
 		return nil, 0, err
 	}
 
-	responses := make([]dto.UserResponse, 0, len(users))
-	for _, user := range users {
-		responses = append(responses, toUserResponse(user))
+	mapped, err := mapper.MapStructListDTOWith[entity.User, dto.UserResponse](u.copier, users)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// flatten []*dto.UserResponse to []dto.UserResponse
+	responses := make([]dto.UserResponse, 0, len(mapped))
+	for _, m := range mapped {
+		if m != nil {
+			responses = append(responses, *m)
+		}
 	}
 
 	return responses, total, nil
@@ -222,7 +246,12 @@ func (u *UserUsecase) Update(ctx context.Context, id string, updates dto.UpdateU
 		return dto.UserResponse{}, err
 	}
 
-	return toUserResponse(*updated), nil
+	resp, err := u.toUserResponse(*updated)
+	if err != nil {
+		return dto.UserResponse{}, err
+	}
+
+	return resp, nil
 }
 
 func (u *UserUsecase) Delete(ctx context.Context, id string) error {
@@ -233,13 +262,10 @@ func (u *UserUsecase) Delete(ctx context.Context, id string) error {
 	return u.repo.Delete(ctx, id)
 }
 
-func toUserResponse(user entity.User) dto.UserResponse {
-	return dto.UserResponse{
-		ID:        user.ID,
-		Name:      user.Name,
-		Email:     user.Email,
-		Role:      user.Role,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
+func (u *UserUsecase) toUserResponse(user entity.User) (dto.UserResponse, error) {
+	var resp dto.UserResponse
+	if err := u.copier.Copy(&resp, &user); err != nil {
+		return dto.UserResponse{}, err
 	}
+	return resp, nil
 }

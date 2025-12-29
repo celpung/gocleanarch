@@ -9,6 +9,7 @@ import (
 	apperrors "github.com/celpung/gocleanarch/internal/domain/errors"
 	"github.com/celpung/gocleanarch/internal/infra/db/model"
 	"github.com/celpung/gocleanarch/internal/usecase/port/repository"
+	"github.com/celpung/gocleanarch/pkg/mapper"
 	"gorm.io/gorm"
 )
 
@@ -17,7 +18,10 @@ type UserRepository struct {
 }
 
 func (r *UserRepository) Create(ctx context.Context, user entity.User) error {
-	m := toModelUser(user)
+	m, err := toModelUser(user)
+	if err != nil {
+		return err
+	}
 
 	if err := r.db.WithContext(ctx).Create(&m).Error; err != nil {
 		if isDuplicateErr(err) {
@@ -49,7 +53,12 @@ func (r *UserRepository) Lists(ctx context.Context, offset, limit int) ([]entity
 		return nil, 0, err
 	}
 
-	return toEntityUsers(users), total, nil
+	entities, err := toEntityUsers(users)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return entities, total, nil
 }
 
 func (r *UserRepository) FindByID(ctx context.Context, userID string) (*entity.User, error) {
@@ -63,7 +72,10 @@ func (r *UserRepository) FindByID(ctx context.Context, userID string) (*entity.U
 		return nil, err
 	}
 
-	e := toEntityUser(user)
+	e, err := toEntityUser(user)
+	if err != nil {
+		return nil, err
+	}
 	return &e, nil
 }
 
@@ -78,7 +90,10 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*entity
 		return nil, err
 	}
 
-	e := toEntityUser(user)
+	e, err := toEntityUser(user)
+	if err != nil {
+		return nil, err
+	}
 	return &e, nil
 }
 
@@ -145,32 +160,32 @@ func NewUserRepository(db *gorm.DB) repository.UserRepository {
 }
 
 // mappers
-func toModelUser(user entity.User) model.User {
-	return model.User{
-		ID:       user.ID,
-		Name:     user.Name,
-		Email:    user.Email,
-		Password: user.Password,
-		Role:     user.Role,
+func toModelUser(user entity.User) (model.User, error) {
+	var m model.User
+	if err := mapper.CopyTo(&user, &m); err != nil {
+		return model.User{}, err
 	}
+	return m, nil
 }
 
-func toEntityUser(user model.User) entity.User {
-	return entity.User{
-		ID:       user.ID,
-		Name:     user.Name,
-		Email:    user.Email,
-		Password: user.Password,
-		Role:     user.Role,
+func toEntityUser(user model.User) (entity.User, error) {
+	var e entity.User
+	if err := mapper.CopyTo(&user, &e); err != nil {
+		return entity.User{}, err
 	}
+	return e, nil
 }
 
-func toEntityUsers(users []model.User) []entity.User {
+func toEntityUsers(users []model.User) ([]entity.User, error) {
 	result := make([]entity.User, 0, len(users))
-	for _, user := range users {
-		result = append(result, toEntityUser(user))
+	for i := range users {
+		e, err := toEntityUser(users[i])
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, e)
 	}
-	return result
+	return result, nil
 }
 
 func isDuplicateErr(err error) bool {

@@ -13,16 +13,21 @@ import (
 	usecasedto "github.com/celpung/gocleanarch/internal/usecase/dto"
 	usecaseport "github.com/celpung/gocleanarch/internal/usecase/port/usecase"
 	"github.com/celpung/gocleanarch/pkg/httpx"
+	"github.com/celpung/gocleanarch/pkg/mapper"
 	"github.com/celpung/gocleanarch/pkg/validator"
 	"github.com/go-chi/chi/v5"
 )
 
 type UserHandler struct {
 	usecase usecaseport.UserUsecase
+	copier  mapper.Copier
 }
 
-func NewUserHandler(usecase usecaseport.UserUsecase) *UserHandler {
-	return &UserHandler{usecase: usecase}
+func NewUserHandler(usecase usecaseport.UserUsecase, copier mapper.Copier) *UserHandler {
+	if copier == nil {
+		copier = mapper.DefaultCopier{}
+	}
+	return &UserHandler{usecase: usecase, copier: copier}
 }
 
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -93,9 +98,17 @@ func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respUsers := make([]dto.UserResponse, 0, len(users))
-	for _, user := range users {
-		respUsers = append(respUsers, toDeliveryUserResponse(user))
+	mapped, err := mapper.MapStructListDTOWith[usecasedto.UserResponse, dto.UserResponse](h.copier, users)
+	if err != nil {
+		writeBadRequest(w, "failed to map user response")
+		return
+	}
+
+	respUsers := make([]dto.UserResponse, 0, len(mapped))
+	for _, u := range mapped {
+		if u != nil {
+			respUsers = append(respUsers, *u)
+		}
 	}
 
 	resp := dto.ListUsersResponse{
@@ -235,13 +248,10 @@ func respondError(w http.ResponseWriter, err error) {
 	httpx.WriteJSON(w, status, map[string]string{"message": msg})
 }
 
-func toDeliveryUserResponse(user usecasedto.UserResponse) dto.UserResponse {
-	return dto.UserResponse{
-		ID:        user.ID,
-		Name:      user.Name,
-		Email:     user.Email,
-		Role:      user.Role,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
+func (h *UserHandler) toDeliveryUserResponse(user usecasedto.UserResponse) (dto.UserResponse, error) {
+	var resp dto.UserResponse
+	if err := h.copier.Copy(&resp, &user); err != nil {
+		return dto.UserResponse{}, err
 	}
+	return resp, nil
 }

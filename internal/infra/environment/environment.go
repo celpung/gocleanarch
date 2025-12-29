@@ -3,6 +3,8 @@ package environment
 import (
 	"log"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -20,6 +22,7 @@ type Environment struct {
 	DB_HOST         string
 	DB_DIALECT      string
 	ALLOWED_ORIGINS string
+	AUTO_MIGRATE    bool
 }
 
 // Load reads environment variables (or .env) and returns a configured struct.
@@ -43,6 +46,7 @@ func Load() Environment {
 		DB_HOST:         getEnv("DB_HOST", "127.0.0.1"),
 		DB_DIALECT:      getEnv("DB_DIALECT", "mysql"),
 		ALLOWED_ORIGINS: getEnv("ALLOWED_ORIGINS", "http://localhost,http://localhost:5173,http://localhost:3000"),
+		AUTO_MIGRATE:    getEnvAsBool("AUTO_MIGRATE", true),
 	}
 }
 
@@ -52,4 +56,16 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func getEnvAsBool(key string, fallback bool) bool {
+	val := strings.TrimSpace(os.Getenv(key))
+	if val == "" {
+		return fallback
+	}
+	parsed, err := strconv.ParseBool(val)
+	if err != nil {
+		return fallback
+	}
+	return parsed
 }
