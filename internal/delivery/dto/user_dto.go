@@ -17,9 +17,9 @@ type ChangePasswordRequest struct {
 }
 
 type UpdateUserRequest struct {
-	Name  string `json:"name" validate:"omitempty"`
-	Email string `json:"email" validate:"omitempty,email"`
-	Role  string `json:"role" validate:"omitempty"`
+	Name  *string `json:"name" validate:"omitempty,min=2"`
+	Email *string `json:"email" validate:"omitempty,email"`
+	Role  *string `json:"role" validate:"omitempty,min=2"`
 }
 
 type PagingMeta struct {

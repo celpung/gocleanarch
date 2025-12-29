@@ -11,6 +11,6 @@ type UserUsecase interface {
 	Login(ctx context.Context, email, password string) (string, error)
 	ChangePassword(ctx context.Context, userID, password string) error
 	UserLists(ctx context.Context, page, limit int) ([]entity.User, int64, error)
-	UpdateUser(ctx context.Context, id string, input *entity.User) error
+	UpdateUser(ctx context.Context, id string, input *entity.UpdateUser) error
 	Delete(ctx context.Context, id string) error
 }

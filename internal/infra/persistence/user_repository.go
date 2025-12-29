@@ -21,7 +21,6 @@ func (r *UserRepository) Create(ctx context.Context, user entity.User) error {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			return entity.ErrEmailExists
 		}
-
 		return err
 	}
 
@@ -34,7 +33,9 @@ func (r *UserRepository) Lists(ctx context.Context, offset, limit int) ([]entity
 		total int64
 	)
 
-	if err := r.db.WithContext(ctx).Model(&model.User{}).Count(&total).Error; err != nil {
+	if err := r.db.WithContext(ctx).
+		Model(&model.User{}).
+		Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
@@ -51,11 +52,12 @@ func (r *UserRepository) Lists(ctx context.Context, offset, limit int) ([]entity
 
 func (r *UserRepository) FindByID(ctx context.Context, userID string) (*entity.User, error) {
 	var user model.User
-	if err := r.db.WithContext(ctx).Where("id = ?", userID).First(&user).Error; err != nil {
+	if err := r.db.WithContext(ctx).
+		Where("id = ?", userID).
+		First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, entity.ErrUserNotFound
 		}
-
 		return nil, err
 	}
 
@@ -65,11 +67,12 @@ func (r *UserRepository) FindByID(ctx context.Context, userID string) (*entity.U
 
 func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
 	var user model.User
-	if err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error; err != nil {
+	if err := r.db.WithContext(ctx).
+		Where("email = ?", email).
+		First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, entity.ErrEmailNotFound
 		}
-
 		return nil, err
 	}
 
@@ -77,17 +80,39 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*entity
 	return &e, nil
 }
 
-func (r *UserRepository) Update(ctx context.Context, id string, fields map[string]any) error {
-	if len(fields) == 0 {
-		return entity.ErrNoFieldToUpdate
+func (r *UserRepository) Update(ctx context.Context, id string, input *entity.UpdateUser) error {
+	if input == nil {
+		return nil
 	}
 
-	result := r.db.WithContext(ctx).Model(&model.User{}).Where("id = ?", id).Updates(fields)
+	updates := make(map[string]any)
+
+	if input.Name != nil {
+		updates["name"] = *input.Name
+	}
+	if input.Email != nil {
+		updates["email"] = *input.Email
+	}
+	if input.Role != nil {
+		updates["role"] = *input.Role
+	}
+	if input.Password != nil {
+		updates["password"] = *input.Password
+	}
+
+	if len(updates) == 0 {
+		return nil
+	}
+
+	result := r.db.WithContext(ctx).
+		Model(&model.User{}).
+		Where("id = ?", id).
+		Updates(updates)
+
 	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+		if input.Email != nil && errors.Is(result.Error, gorm.ErrDuplicatedKey) {
 			return entity.ErrEmailExists
 		}
-
 		return result.Error
 	}
 
@@ -99,7 +124,9 @@ func (r *UserRepository) Update(ctx context.Context, id string, fields map[strin
 }
 
 func (r *UserRepository) Delete(ctx context.Context, id string) error {
-	result := r.db.WithContext(ctx).Delete(&model.User{}, "id = ?", id)
+	result := r.db.WithContext(ctx).
+		Delete(&model.User{}, "id = ?", id)
+
 	if result.Error != nil {
 		return result.Error
 	}
@@ -112,11 +139,10 @@ func (r *UserRepository) Delete(ctx context.Context, id string) error {
 }
 
 func NewUserRepository(db *gorm.DB) repository.UserRepository {
-	return &UserRepository{
-		db: db,
-	}
+	return &UserRepository{db: db}
 }
 
+// mappers
 func toModelUser(user entity.User) model.User {
 	return model.User{
 		ID:       user.ID,

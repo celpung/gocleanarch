@@ -20,6 +20,10 @@ type UserHandler struct {
 	usecase usecaseport.UserUsecase
 }
 
+func NewUserHandler(usecase usecaseport.UserUsecase) *UserHandler {
+	return &UserHandler{usecase: usecase}
+}
+
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req dto.UserDto
 	if err := decodeAndValidate(r, &req); err != nil {
@@ -29,7 +33,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	user := entity.User{
 		Name:     req.Name,
-		Email:    strings.TrimSpace(req.Email),
+		Email:    req.Email,
 		Password: req.Password,
 		Role:     req.Role,
 	}
@@ -60,8 +64,8 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	userID, ok := middleware.UserIDFromContext(r.Context())
-	if !ok {
-		writeBadRequest(w, "user not found in context")
+	if !ok || strings.TrimSpace(userID) == "" {
+		httpx.WriteJSON(w, http.StatusUnauthorized, map[string]string{"message": "unauthorized"})
 		return
 	}
 
@@ -101,7 +105,7 @@ func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
 		writeBadRequest(w, "user id is required")
 		return
@@ -113,12 +117,12 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Name == "" && req.Email == "" && req.Role == "" {
-		writeBadRequest(w, "no field to update")
+	if req.Name == nil && req.Email == nil && req.Role == nil {
+		writeBadRequest(w, "no changes to update")
 		return
 	}
 
-	input := &entity.User{
+	input := &entity.UpdateUser{
 		Name:  req.Name,
 		Email: req.Email,
 		Role:  req.Role,
@@ -133,7 +137,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
 		writeBadRequest(w, "user id is required")
 		return
@@ -147,18 +151,26 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	httpx.WriteJSON(w, http.StatusOK, map[string]string{"message": "user deleted"})
 }
 
-func NewUserHandler(usecase usecaseport.UserUsecase) *UserHandler {
-	return &UserHandler{
-		usecase: usecase,
-	}
-}
+// ---------- helpers ----------
 
 func decodeAndValidate(r *http.Request, dst any) error {
+	// optional: enforce content-type json (kalau strict)
+	// ct := r.Header.Get("Content-Type")
+	// if ct != "" && !strings.Contains(ct, "application/json") {
+	// 	return errors.New("content-type must be application/json")
+	// }
+
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
+
 	if err := dec.Decode(dst); err != nil {
 		return errors.New("invalid request body")
 	}
+
+	if dec.More() {
+		return errors.New("invalid request body")
+	}
+
 	return validator.Validate(dst)
 }
 
@@ -185,33 +197,45 @@ func writeBadRequest(w http.ResponseWriter, msg string) {
 }
 
 func respondUserError(w http.ResponseWriter, err error) {
+	if err == nil {
+		return
+	}
+
 	status := http.StatusInternalServerError
 	message := "internal server error"
 
 	switch {
-	case err == nil:
-		return
 	case errors.Is(err, entity.ErrEmailExists):
 		status = http.StatusConflict
 		message = "email already exists"
+
 	case errors.Is(err, entity.ErrEmailNotFound):
 		status = http.StatusNotFound
 		message = "email not found"
+
 	case errors.Is(err, entity.ErrUserNotFound):
 		status = http.StatusNotFound
 		message = "user not found"
+
 	case errors.Is(err, entity.ErrPasswordMismatch):
 		status = http.StatusUnauthorized
-		message = "password not match"
-	case errors.Is(err, entity.ErrNoFieldToUpdate):
-		status = http.StatusBadRequest
-		message = "no field to update"
+		message = "wrong password"
+
 	case errors.Is(err, entity.ErrPasswordRequired):
 		status = http.StatusBadRequest
 		message = "password is required"
-	case errors.Is(err, entity.ErrPasswordHash), errors.Is(err, entity.ErrIDGeneration):
-		status = http.StatusInternalServerError
-		message = "internal server error"
+
+	case errors.Is(err, entity.ErrUserIDRequired):
+		status = http.StatusBadRequest
+		message = "user id is required"
+
+	case errors.Is(err, entity.ErrInvalidInput):
+		status = http.StatusBadRequest
+		message = "invalid input"
+
+	case errors.Is(err, entity.ErrNoChanges):
+		status = http.StatusBadRequest
+		message = "no changes to update"
 	}
 
 	httpx.WriteJSON(w, status, map[string]string{"message": message})

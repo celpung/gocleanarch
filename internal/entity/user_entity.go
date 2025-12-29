@@ -7,3 +7,10 @@ type User struct {
 	Role     string
 	Password string
 }
+
+type UpdateUser struct {
+	Name     *string
+	Email    *string
+	Role     *string
+	Password *string
+}
