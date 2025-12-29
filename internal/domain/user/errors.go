@@ -1,4 +1,4 @@
-package errors
+package user
 
 import stderrs "errors"
 

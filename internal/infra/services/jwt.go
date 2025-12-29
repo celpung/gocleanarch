@@ -1,24 +1,49 @@
-package auth
+package services
 
 import (
 	"errors"
 	"time"
 
-	"github.com/celpung/gocleanarch/internal/usecase/port/dependencies"
+	usecase "github.com/celpung/gocleanarch/internal/usecase/user"
 	"github.com/golang-jwt/jwt/v4"
 )
 
-// JwtVerifier verifies JWT tokens using an HMAC secret.
-type JwtVerifier struct {
+type JWTService struct {
 	secret []byte
 }
 
-func NewJwtVerifier(secret string) JwtVerifier {
-	return JwtVerifier{secret: []byte(secret)}
+func NewJWTService(secret string) JWTService {
+	return JWTService{secret: []byte(secret)}
 }
 
-func (v JwtVerifier) Verify(tokenStr string) (dependencies.AuthClaims, error) {
-	if len(v.secret) == 0 {
+func (s JWTService) Generate(userID, email, role string) (string, error) {
+	if len(s.secret) == 0 {
+		return "", errors.New("jwt secret is empty")
+	}
+
+	claims := jwtClaims{
+		ID:       userID,
+		EmailVal: email,
+		RoleVal:  role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	tokenString, err := token.SignedString(s.secret)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
+}
+
+func (s JWTService) Verify(tokenStr string) (usecase.AuthClaims, error) {
+	if len(s.secret) == 0 {
 		return nil, errors.New("jwt secret is empty")
 	}
 
@@ -27,7 +52,7 @@ func (v JwtVerifier) Verify(tokenStr string) (dependencies.AuthClaims, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
 		}
-		return v.secret, nil
+		return s.secret, nil
 	})
 	if err != nil {
 		return nil, err

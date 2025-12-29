@@ -1,4 +1,4 @@
-package middleware
+package user
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/celpung/gocleanarch/internal/usecase/port/dependencies"
+	usecase "github.com/celpung/gocleanarch/internal/usecase/user"
 )
 
 type ctxKey string
@@ -47,7 +47,7 @@ func getBearerToken(r *http.Request) (string, error) {
 	return parts[1], nil
 }
 
-func AuthMiddleware(verifier dependencies.TokenVerifier, allowedRoles ...Role) func(http.Handler) http.Handler {
+func AuthMiddleware(verifier usecase.TokenVerifier, allowedRoles ...Role) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if verifier == nil {
@@ -90,7 +90,7 @@ func AuthMiddleware(verifier dependencies.TokenVerifier, allowedRoles ...Role) f
 	}
 }
 
-// Helper untuk dipakai di handler
+// Helper functions to extract user identity from context.
 func UserFromContext(ctx context.Context) (id, email string, role Role, ok bool) {
 	idVal, ok1 := ctx.Value(ctxKeyID).(string)
 	emVal, ok2 := ctx.Value(ctxKeyEmail).(string)

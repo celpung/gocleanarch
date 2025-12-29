@@ -1,4 +1,4 @@
-package handler
+package user
 
 import (
 	"encoding/json"
@@ -7,39 +7,36 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/celpung/gocleanarch/internal/delivery/dto"
-	"github.com/celpung/gocleanarch/internal/delivery/middleware"
-	apperrors "github.com/celpung/gocleanarch/internal/domain/errors"
-	usecasedto "github.com/celpung/gocleanarch/internal/usecase/dto"
-	usecaseport "github.com/celpung/gocleanarch/internal/usecase/port/usecase"
+	domain "github.com/celpung/gocleanarch/internal/domain/user"
+	usecase "github.com/celpung/gocleanarch/internal/usecase/user"
 	"github.com/celpung/gocleanarch/pkg/httpx"
 	"github.com/celpung/gocleanarch/pkg/validator"
 	"github.com/go-chi/chi/v5"
 )
 
-type UserHandler struct {
-	usecase usecaseport.UserUsecase
+type Handler struct {
+	usecase usecase.Usecase
 }
 
-func NewUserHandler(usecase usecaseport.UserUsecase) *UserHandler {
-	return &UserHandler{usecase: usecase}
+func NewHandler(usecase usecase.Usecase) *Handler {
+	return &Handler{usecase: usecase}
 }
 
-func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
-	var req dto.RegisterRequest
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
+	var req RegisterRequest
 	if err := decodeAndValidate(r, &req); err != nil {
 		writeBadRequest(w, err.Error())
 		return
 	}
 
-	user := usecasedto.CreateUserInput{
+	userInput := usecase.CreateUserInput{
 		Name:     req.Name,
 		Email:    req.Email,
 		Role:     req.Role,
 		Password: req.Password,
 	}
 
-	if _, err := h.usecase.Create(r.Context(), user); err != nil {
+	if _, err := h.usecase.Create(r.Context(), userInput); err != nil {
 		respondError(w, err)
 		return
 	}
@@ -47,8 +44,8 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	httpx.WriteJSON(w, http.StatusCreated, map[string]string{"message": "user registered"})
 }
 
-func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
-	var req dto.LoginRequest
+func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
+	var req LoginRequest
 	if err := decodeAndValidate(r, &req); err != nil {
 		writeBadRequest(w, err.Error())
 		return
@@ -63,14 +60,14 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	httpx.WriteJSON(w, http.StatusOK, map[string]string{"token": token})
 }
 
-func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
-	userID, ok := middleware.UserIDFromContext(r.Context())
+func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	userID, ok := UserIDFromContext(r.Context())
 	if !ok || strings.TrimSpace(userID) == "" {
 		httpx.WriteJSON(w, http.StatusUnauthorized, map[string]string{"message": "unauthorized"})
 		return
 	}
 
-	var req dto.ChangePasswordRequest
+	var req ChangePasswordRequest
 	if err := decodeAndValidate(r, &req); err != nil {
 		writeBadRequest(w, err.Error())
 		return
@@ -84,7 +81,7 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	httpx.WriteJSON(w, http.StatusOK, map[string]string{"message": "password updated"})
 }
 
-func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	page, limit := parsePagination(r)
 
 	users, total, err := h.usecase.List(r.Context(), page, limit)
@@ -93,9 +90,9 @@ func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respUsers := make([]dto.UserResponse, 0, len(users))
+	respUsers := make([]UserResponse, 0, len(users))
 	for _, u := range users {
-		respUsers = append(respUsers, dto.UserResponse{
+		respUsers = append(respUsers, UserResponse{
 			ID:        u.ID,
 			Email:     u.Email,
 			Name:      u.Name,
@@ -105,9 +102,9 @@ func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	resp := dto.ListUsersResponse{
+	resp := ListUsersResponse{
 		Data: respUsers,
-		Meta: dto.PagingMeta{
+		Meta: PagingMeta{
 			Page:       page,
 			Limit:      limit,
 			TotalItems: total,
@@ -117,14 +114,14 @@ func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	httpx.WriteJSON(w, http.StatusOK, resp)
 }
 
-func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
 		writeBadRequest(w, "user id is required")
 		return
 	}
 
-	var req dto.UpdateUserRequest
+	var req UpdateUserRequest
 	if err := decodeAndValidate(r, &req); err != nil {
 		writeBadRequest(w, err.Error())
 		return
@@ -135,7 +132,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updateReq := usecasedto.UpdateUserInput{
+	updateReq := usecase.UpdateUserInput{
 		Name:     req.Name,
 		Email:    req.Email,
 		Role:     req.Role,
@@ -150,7 +147,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	httpx.WriteJSON(w, http.StatusOK, map[string]string{"message": "user updated"})
 }
 
-func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
 		writeBadRequest(w, "user id is required")
@@ -168,12 +165,6 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 // ---------- helpers ----------
 
 func decodeAndValidate(r *http.Request, dst any) error {
-	// optional: enforce content-type json (kalau strict)
-	// ct := r.Header.Get("Content-Type")
-	// if ct != "" && !strings.Contains(ct, "application/json") {
-	// 	return errors.New("content-type must be application/json")
-	// }
-
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
 
@@ -215,33 +206,33 @@ func respondError(w http.ResponseWriter, err error) {
 	msg := "internal server error"
 
 	switch {
-	case errors.Is(err, apperrors.ErrEmailExists):
+	case errors.Is(err, domain.ErrEmailExists):
 		status, msg = http.StatusConflict, "email already exists"
-	case errors.Is(err, apperrors.ErrEmailNotFound):
+	case errors.Is(err, domain.ErrEmailNotFound):
 		status, msg = http.StatusNotFound, "email not found"
-	case errors.Is(err, apperrors.ErrUserNotFound):
+	case errors.Is(err, domain.ErrUserNotFound):
 		status, msg = http.StatusNotFound, "user not found"
-	case errors.Is(err, apperrors.ErrPasswordMismatch):
+	case errors.Is(err, domain.ErrPasswordMismatch):
 		status, msg = http.StatusUnauthorized, "wrong password"
-	case errors.Is(err, apperrors.ErrPasswordRequired):
+	case errors.Is(err, domain.ErrPasswordRequired):
 		status, msg = http.StatusBadRequest, "password is required"
-	case errors.Is(err, apperrors.ErrUserIDRequired):
+	case errors.Is(err, domain.ErrUserIDRequired):
 		status, msg = http.StatusBadRequest, "user id is required"
-	case errors.Is(err, apperrors.ErrInvalidInput):
+	case errors.Is(err, domain.ErrInvalidInput):
 		status, msg = http.StatusBadRequest, "invalid input"
-	case errors.Is(err, apperrors.ErrNoChanges):
+	case errors.Is(err, domain.ErrNoChanges):
 		status, msg = http.StatusBadRequest, "no changes to update"
-	case errors.Is(err, apperrors.ErrNameRequired):
+	case errors.Is(err, domain.ErrNameRequired):
 		status, msg = http.StatusBadRequest, "name is required"
-	case errors.Is(err, apperrors.ErrEmailRequired):
+	case errors.Is(err, domain.ErrEmailRequired):
 		status, msg = http.StatusBadRequest, "email is required"
-	case errors.Is(err, apperrors.ErrInvalidEmail):
+	case errors.Is(err, domain.ErrInvalidEmail):
 		status, msg = http.StatusBadRequest, "invalid email"
-	case errors.Is(err, apperrors.ErrRoleRequired):
+	case errors.Is(err, domain.ErrRoleRequired):
 		status, msg = http.StatusBadRequest, "role is required"
-	case errors.Is(err, apperrors.ErrInvalidRole):
+	case errors.Is(err, domain.ErrInvalidRole):
 		status, msg = http.StatusBadRequest, "invalid role"
-	case errors.Is(err, apperrors.ErrWeakPassword):
+	case errors.Is(err, domain.ErrWeakPassword):
 		status, msg = http.StatusBadRequest, "password is too weak"
 	}
 

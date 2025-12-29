@@ -6,16 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/celpung/gocleanarch/internal/delivery/handler"
-	"github.com/celpung/gocleanarch/internal/delivery/router"
+	deliveryuser "github.com/celpung/gocleanarch/internal/delivery/user"
 	"github.com/celpung/gocleanarch/internal/infra/db"
-	"github.com/celpung/gocleanarch/internal/infra/dependencies/auth"
-	"github.com/celpung/gocleanarch/internal/infra/dependencies/identity"
 	"github.com/celpung/gocleanarch/internal/infra/environment"
 	"github.com/celpung/gocleanarch/internal/infra/persistence"
-	"github.com/celpung/gocleanarch/internal/usecase"
-	"github.com/celpung/gocleanarch/internal/usecase/port/dependencies"
-	usecaseport "github.com/celpung/gocleanarch/internal/usecase/port/usecase"
+	"github.com/celpung/gocleanarch/internal/infra/services"
+	usecase "github.com/celpung/gocleanarch/internal/usecase/user"
 	"github.com/celpung/gocleanarch/pkg/typograph"
 
 	"github.com/go-chi/chi/v5"
@@ -28,7 +24,7 @@ type Container struct {
 	Env         environment.Environment
 	DB          *gorm.DB
 	Router      http.Handler
-	UserUsecase usecaseport.UserUsecase
+	UserUsecase usecase.Usecase
 }
 
 func Build() (*Container, error) {
@@ -44,17 +40,16 @@ func Build() (*Container, error) {
 	}
 
 	userRepo := persistence.NewUserRepository(dbConn)
-	jwtGenerator := auth.NewJwtGenerator(env.JWT_TOKEN)
-	jwtVerifier := auth.NewJwtVerifier(env.JWT_TOKEN)
-	userUsecase := usecase.NewUserUsecase(
+	jwtService := services.NewJWTService(env.JWT_TOKEN)
+	userUsecase := usecase.NewUsecase(
 		userRepo,
-		identity.UUIDGenerator{},
-		auth.BcryptHasher{},
-		jwtGenerator,
+		services.UUIDService{},
+		services.PasswordService{},
+		jwtService,
 		typograph.Typograph{},
 	)
 
-	r, err := buildRouter(env, jwtVerifier, userUsecase)
+	r, err := buildRouter(env, jwtService, userUsecase)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +62,7 @@ func Build() (*Container, error) {
 	}, nil
 }
 
-func buildRouter(env environment.Environment, verifier dependencies.TokenVerifier, userUsecase usecaseport.UserUsecase) (http.Handler, error) {
+func buildRouter(env environment.Environment, verifier usecase.TokenVerifier, userUsecase usecase.Usecase) (http.Handler, error) {
 	allowedOriginsRaw := env.ALLOWED_ORIGINS
 	if allowedOriginsRaw == "" {
 		return nil, fmt.Errorf("ALLOWED_ORIGINS environment variable is not set")
@@ -93,8 +88,8 @@ func buildRouter(env environment.Environment, verifier dependencies.TokenVerifie
 	)
 	r.Handle("/images/*", fileServer)
 
-	userHandler := handler.NewUserHandler(userUsecase)
-	router.UserRouter(r, verifier, userHandler)
+	userHandler := deliveryuser.NewHandler(userUsecase)
+	deliveryuser.RegisterRoutes(r, verifier, userHandler)
 	return r, nil
 }
 
