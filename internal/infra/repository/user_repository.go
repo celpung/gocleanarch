@@ -33,7 +33,7 @@ func (r *UserRepository) Create(ctx context.Context, user entity.User) error {
 	return nil
 }
 
-func (r *UserRepository) Lists(ctx context.Context, offset int, limit int) ([]entity.User, int64, error) {
+func (r *UserRepository) Lists(ctx context.Context, offset, limit int) ([]entity.User, int64, error) {
 	var (
 		users []model.User
 		total int64
@@ -156,9 +156,7 @@ func (r *UserRepository) Delete(ctx context.Context, id string) error {
 }
 
 func NewUserRepository(db *gorm.DB) port.UserRepository {
-	return &UserRepository{
-		db: db,
-	}
+	return &UserRepository{db: db}
 }
 
 // mappers

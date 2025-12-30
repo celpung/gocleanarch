@@ -8,7 +8,7 @@ import (
 	"github.com/celpung/gocleanarch/internal/domain/entity"
 	errs "github.com/celpung/gocleanarch/internal/domain/errors"
 	"github.com/celpung/gocleanarch/internal/infra/db/model"
-	"github.com/celpung/gocleanarch/internal/infra/db/repository"
+	"github.com/celpung/gocleanarch/internal/infra/repository"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

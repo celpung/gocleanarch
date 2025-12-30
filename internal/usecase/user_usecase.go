@@ -21,7 +21,22 @@ func (u *UserUsecase) Create(ctx context.Context, input entity.User) (entity.Use
 		return entity.User{}, errs.ErrNameRequired
 	}
 
-	hash, err := u.dep.HashPassword(input.Password)
+	email, err := normalizeEmail(input.Email)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	role, err := normalizeRole(input.Role)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	password, err := normalizePassword(input.Password)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	hash, err := u.dep.HashPassword(password)
 	if err != nil {
 		return entity.User{}, errs.ErrPasswordHash
 	}
@@ -34,8 +49,8 @@ func (u *UserUsecase) Create(ctx context.Context, input entity.User) (entity.Use
 	user := entity.User{
 		ID:       id,
 		Name:     name,
-		Email:    input.Email,
-		Role:     input.Role,
+		Email:    email,
+		Role:     role,
 		Password: hash,
 	}
 

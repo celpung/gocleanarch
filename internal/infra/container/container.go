@@ -8,8 +8,9 @@ import (
 	"github.com/celpung/gocleanarch/internal/delivery/handler"
 	"github.com/celpung/gocleanarch/internal/delivery/router"
 	"github.com/celpung/gocleanarch/internal/infra/db"
-	"github.com/celpung/gocleanarch/internal/infra/db/repository"
+	"github.com/celpung/gocleanarch/internal/infra/db/migration"
 	"github.com/celpung/gocleanarch/internal/infra/environment"
+	"github.com/celpung/gocleanarch/internal/infra/repository"
 	"github.com/celpung/gocleanarch/internal/usecase"
 	usecaseport "github.com/celpung/gocleanarch/internal/usecase/port"
 	"github.com/celpung/gocleanarch/pkg/services"
@@ -39,6 +40,10 @@ func Build() (*Container, error) {
 	dbConn, err := dbProvider.Connect(env)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize database: %w", err)
+	}
+
+	if err := migration.Run(dbConn); err != nil {
+		return nil, fmt.Errorf("failed to run migrations: %w", err)
 	}
 
 	deps := dependencies{

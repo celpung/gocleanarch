@@ -4,7 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/celpung/gocleanarch)](https://goreportcard.com/report/github.com/celpung/gocleanarch)
 [![GoDoc](https://godoc.org/github.com/celpung/gocleanarch?status.svg)](https://godoc.org/github.com/celpung/gocleanarch)
 
-> **Version:** `v2.5.0`
+> **Version:** `v3.0.0`
 
 ## 📚 Introduction
 
@@ -40,6 +40,7 @@ go mod tidy
 - Run migrations explicitly: `go run ./cmd/migration`
 - The API also runs migrations on boot before serving traffic.
 - Optional sample data: `go run ./cmd/seed` (includes migrations).
+- Supported dialects: set `DB_DIALECT` to `mysql` (default) or `sqlite`. For SQLite, `DB_NAME` is used as the database file (e.g., `app.db`).
 
 ### ▶️ Run the API
 
@@ -50,7 +51,6 @@ go run ./cmd/api
 ### 🧪 Testing
 
 - Unit tests use in-memory adapters for speed and isolation.
-- Integration tests live under `test/integration` and use SQLite.
 
 ```bash
 go test ./...

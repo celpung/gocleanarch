@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/celpung/gocleanarch/internal/infra/db/connector/mysql"
+	"github.com/celpung/gocleanarch/internal/infra/db/connector/sqlite"
 	"github.com/celpung/gocleanarch/internal/infra/db/migration"
 	"github.com/celpung/gocleanarch/internal/infra/environment"
 	"gorm.io/gorm"
@@ -36,7 +37,8 @@ type Provider struct {
 func DefaultProvider() Provider {
 	return Provider{
 		connectors: map[string]Connector{
-			"mysql": MySQLConnector{},
+			"mysql":  MySQLConnector{},
+			"sqlite": SQLiteConnector{},
 		},
 		migrator: MigratorFunc(migration.Run),
 	}
@@ -82,4 +84,21 @@ func (MySQLConnector) Connect(env environment.Environment) (*gorm.DB, error) {
 	}
 
 	return database.DB, nil
+}
+
+// SQLiteConnector connects using the SQLite adapter.
+type SQLiteConnector struct{}
+
+func (SQLiteConnector) Connect(env environment.Environment) (*gorm.DB, error) {
+	dbname := strings.TrimSpace(env.DB_NAME)
+	if dbname == "" {
+		dbname = "app.db"
+	}
+
+	db, err := sqlite.SetupDB(dbname)
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }
