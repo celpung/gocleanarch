@@ -8,7 +8,7 @@ import (
 	"github.com/celpung/gocleanarch/internal/domain/entity"
 	errs "github.com/celpung/gocleanarch/internal/domain/errors"
 	"github.com/celpung/gocleanarch/internal/infra/db/model"
-	"github.com/celpung/gocleanarch/internal/port/repository"
+	"github.com/celpung/gocleanarch/internal/usecase/port"
 	"github.com/celpung/gocleanarch/pkg/mapper"
 	"gorm.io/gorm"
 )
@@ -155,7 +155,7 @@ func (r *UserRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func NewUserRepository(db *gorm.DB) repository.UserRepository {
+func NewUserRepository(db *gorm.DB) port.UserRepository {
 	return &UserRepository{db: db}
 }
 
