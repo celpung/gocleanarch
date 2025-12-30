@@ -3,13 +3,18 @@ package container
 import (
 	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/celpung/gocleanarch/internal/delivery/handler"
+	"github.com/celpung/gocleanarch/internal/delivery/router"
 	"github.com/celpung/gocleanarch/internal/infra/db"
 	"github.com/celpung/gocleanarch/internal/infra/db/repository"
 	"github.com/celpung/gocleanarch/internal/infra/environment"
 	"github.com/celpung/gocleanarch/internal/usecase"
+	usecaseport "github.com/celpung/gocleanarch/internal/usecase/port"
 	"github.com/celpung/gocleanarch/pkg/services"
 	"github.com/celpung/gocleanarch/pkg/utilities/typograph"
+	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 )
 
@@ -17,7 +22,7 @@ type Container struct {
 	Env         environment.Environment
 	DB          *gorm.DB
 	Router      http.Handler
-	UserUsecase usecase.UserUsecase
+	UserUsecase usecaseport.UserUsecase
 }
 
 func Build() (*Container, error) {
@@ -36,9 +41,28 @@ func Build() (*Container, error) {
 		return nil, fmt.Errorf("failed to initialize database: %w", err)
 	}
 
+	deps := dependencies{
+		uuid:      services.UUIDService{},
+		password:  services.PasswordService{},
+		typograph: typograph.Typograph{},
+		jwt:       services.NewJwtService(),
+		secret:    env.JWT_TOKEN,
+	}
+
 	// register modules
 	userRepo := repository.NewUserRepository(dbConn)
-	userUsecase := usecase.NewUserUsecase(userRepo, services.PasswordService{}, typograph.Typograph{}, services.UUIDService{})
+	userUsecase := usecase.NewUserUsecase(userRepo, deps)
+	userHandler := handler.NewUserHandler(userUsecase)
+
+	r := chi.NewRouter()
+	router.Router(r, userHandler)
+
+	return &Container{
+		Env:         env,
+		DB:          dbConn,
+		Router:      r,
+		UserUsecase: userUsecase,
+	}, nil
 
 }
 
@@ -49,127 +73,30 @@ func validateMode(mode string) error {
 	return nil
 }
 
-// import (
-// 	"fmt"
-// 	"net/http"
-// 	"strings"
-// 	"time"
+type dependencies struct {
+	uuid      services.UUIDService
+	password  services.PasswordService
+	typograph typograph.Typograph
+	jwt       *services.JwtService
+	secret    string
+}
 
-// 	deliveryuser "github.com/celpung/gocleanarch/internal/delivery"
-// 	"github.com/celpung/gocleanarch/internal/infra/db"
-// 	"github.com/celpung/gocleanarch/internal/infra/environment"
-// 	"github.com/celpung/gocleanarch/internal/infra/repository"
-// 	"github.com/celpung/gocleanarch/internal/infra/services"
-// 	usecase "github.com/celpung/gocleanarch/internal/usecase"
-// 	"github.com/celpung/gocleanarch/pkg/typograph"
+func (d dependencies) NewID() (string, error) {
+	return d.uuid.NewID()
+}
 
-// 	"github.com/go-chi/chi/v5"
-// 	"github.com/go-chi/chi/v5/middleware"
-// 	"gorm.io/gorm"
-// )
+func (d dependencies) HashPassword(plain string) (string, error) {
+	return d.password.Hash(plain)
+}
 
-// // Container wires application dependencies and exposes the HTTP router.
-// type Container struct {
-// 	Env         environment.Environment
-// 	DB          *gorm.DB
-// 	Router      http.Handler
-// 	UserUsecase usecase.Usecase
-// }
+func (d dependencies) ComparePassword(hashed string, plain string) error {
+	return d.password.Compare(hashed, plain)
+}
 
-// func Build() (*Container, error) {
-// 	env := environment.Load()
-// 	if err := validateMode(env.MODE); err != nil {
-// 		return nil, err
-// 	}
+func (d dependencies) GenerateToken(id string, email string, role string) (string, error) {
+	return d.jwt.GenerateToken(id, email, role, d.secret, 24*time.Hour)
+}
 
-// 	dbProvider := db.DefaultProvider()
-// 	dbConn, err := dbProvider.Connect(env)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to initialize database: %w", err)
-// 	}
-
-// 	userRepo := persistence.NewUserRepository(dbConn)
-// 	jwtService := services.NewJWTService(env.JWT_TOKEN)
-// 	userUsecase := usecase.NewUsecase(
-// 		userRepo,
-// 		services.UUIDService{},
-// 		services.PasswordService{},
-// 		jwtService,
-// 		typograph.Typograph{},
-// 	)
-
-// 	r, err := buildRouter(env, jwtService, userUsecase)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return &Container{
-// 		Env:         env,
-// 		DB:          dbConn,
-// 		Router:      r,
-// 		UserUsecase: userUsecase,
-// 	}, nil
-// }
-
-// func buildRouter(env environment.Environment, verifier usecase.TokenVerifier, userUsecase usecase.Usecase) (http.Handler, error) {
-// 	allowedOriginsRaw := env.ALLOWED_ORIGINS
-// 	if allowedOriginsRaw == "" {
-// 		return nil, fmt.Errorf("ALLOWED_ORIGINS environment variable is not set")
-// 	}
-// 	allowedOrigins := strings.Split(allowedOriginsRaw, ",")
-
-// 	r := chi.NewRouter()
-// 	r.Use(middleware.RequestID)
-// 	r.Use(middleware.RealIP)
-// 	r.Use(middleware.Logger)
-// 	r.Use(middleware.Recoverer)
-// 	r.Use(middleware.Timeout(60 * time.Second))
-// 	r.Use(corsMiddleware(allowedOrigins))
-
-// 	// STATIC FILES
-// 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-// 		http.ServeFile(w, r, "./public/index.html")
-// 	})
-
-// 	fileServer := http.StripPrefix(
-// 		"/images",
-// 		http.FileServer(http.Dir("./public/images")),
-// 	)
-// 	r.Handle("/images/*", fileServer)
-
-// 	userHandler := deliveryuser.NewHandler(userUsecase)
-// 	deliveryuser.RegisterRoutes(r, verifier, userHandler)
-// 	return r, nil
-// }
-
-// func validateMode(mode string) error {
-// 	if mode != "debug" && mode != "release" {
-// 		return fmt.Errorf("please set MODE=debug or MODE=release")
-// 	}
-// 	return nil
-// }
-
-// func corsMiddleware(allowedOrigins []string) func(http.Handler) http.Handler {
-// 	return func(next http.Handler) http.Handler {
-// 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 			origin := r.Header.Get("Origin")
-// 			for _, allowed := range allowedOrigins {
-// 				if strings.TrimSpace(origin) == strings.TrimSpace(allowed) {
-// 					w.Header().Set("Access-Control-Allow-Origin", origin)
-// 					break
-// 				}
-// 			}
-
-// 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-// 			w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization")
-// 			w.Header().Set("Access-Control-Expose-Headers", "Content-Length")
-
-// 			if r.Method == http.MethodOptions {
-// 				w.WriteHeader(http.StatusNoContent)
-// 				return
-// 			}
-
-// 			next.ServeHTTP(w, r)
-// 		})
-// 	}
-// }
+func (d dependencies) ToTitleCase(s string) string {
+	return d.typograph.ToTitleCase(s)
+}

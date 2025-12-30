@@ -11,25 +11,22 @@ import (
 )
 
 type UserUsecase struct {
-	repo           port.UserRepository
-	passwordHasher port.PasswordHasher
-	typograph      port.Typograph
-	idGenerator    port.UUIDGenerator
-	jwtGenerator   port.JWTGenerator
+	repo port.UserRepository
+	dep  port.Dependencies
 }
 
 func (u *UserUsecase) Create(ctx context.Context, input entity.User) (entity.User, error) {
-	name := strings.TrimSpace(u.typograph.ToTitleCase(input.Name))
+	name := strings.TrimSpace(u.dep.ToTitleCase(input.Name))
 	if name == "" {
 		return entity.User{}, errs.ErrNameRequired
 	}
 
-	hash, err := u.passwordHasher.HashPassword(input.Password)
+	hash, err := u.dep.HashPassword(input.Password)
 	if err != nil {
 		return entity.User{}, errs.ErrPasswordHash
 	}
 
-	id, err := u.idGenerator.NewID()
+	id, err := u.dep.NewID()
 	if err != nil {
 		return entity.User{}, errs.ErrIDGeneration
 	}
@@ -70,11 +67,11 @@ func (u *UserUsecase) Login(ctx context.Context, email string, password string) 
 		return "", err
 	}
 
-	if err := u.passwordHasher.ComparePassword(usr.Password, passwordNormalized); err != nil {
+	if err := u.dep.ComparePassword(usr.Password, passwordNormalized); err != nil {
 		return "", errs.ErrPasswordMismatch
 	}
 
-	token, err := u.jwtGenerator.GenerateToken(usr.ID, usr.Email, usr.Role)
+	token, err := u.dep.GenerateToken(usr.ID, usr.Email, usr.Role)
 	if err != nil {
 		return "", err
 	}
@@ -93,7 +90,7 @@ func (u *UserUsecase) ChangePassword(ctx context.Context, userID string, passwor
 		return err
 	}
 
-	hash, err := u.passwordHasher.HashPassword(passwordNormalized)
+	hash, err := u.dep.HashPassword(passwordNormalized)
 	if err != nil {
 		return errs.ErrPasswordHash
 	}
@@ -165,7 +162,7 @@ func (u *UserUsecase) Update(ctx context.Context, id string, updates entity.Upda
 		if err != nil {
 			return entity.User{}, err
 		}
-		hash, err := u.passwordHasher.HashPassword(password)
+		hash, err := u.dep.HashPassword(password)
 		if err != nil {
 			return entity.User{}, errs.ErrPasswordHash
 		}
@@ -197,17 +194,11 @@ func (u *UserUsecase) Delete(ctx context.Context, id string) error {
 }
 
 func NewUserUsecase(repo port.UserRepository,
-	passwordHasher port.PasswordHasher,
-	typograph port.Typograph,
-	idGenerator port.UUIDGenerator,
-	jwtGenerator port.JWTGenerator,
+	dep port.Dependencies,
 ) port.UserUsecase {
 	return &UserUsecase{
-		repo:           repo,
-		passwordHasher: passwordHasher,
-		typograph:      typograph,
-		idGenerator:    idGenerator,
-		jwtGenerator:   jwtGenerator,
+		repo: repo,
+		dep:  dep,
 	}
 }
 

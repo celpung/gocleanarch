@@ -26,11 +26,6 @@ type JwtClaims struct {
 
 type JwtService struct{}
 
-// GenerateToken implements port.JWTGenerator.
-func (js JwtService) GenerateToken(id string, email string, role string) (string, error) {
-	panic("unimplemented")
-}
-
 func NewJwtService() *JwtService {
 	return &JwtService{}
 }
