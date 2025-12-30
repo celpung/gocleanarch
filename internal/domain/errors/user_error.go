@@ -4,6 +4,8 @@ import stderrs "errors"
 
 // User domain errors.
 var (
+	ErrNameRequired     = stderrs.New("user: name is required")
+	
 	ErrInvalidInput     = stderrs.New("user: invalid input")
 	ErrNoChanges        = stderrs.New("user: no changes to update")
 	ErrUserIDRequired   = stderrs.New("user: user id is required")
@@ -17,7 +19,7 @@ var (
 	ErrIDGeneration     = stderrs.New("user: failed to generate id")
 	ErrRoleRequired     = stderrs.New("user: role is required")
 	ErrInvalidRole      = stderrs.New("user: invalid role")
-	ErrNameRequired     = stderrs.New("user: name is required")
+	
 	ErrEmailRequired    = stderrs.New("user: email is required")
 	ErrWeakPassword     = stderrs.New("user: password is too weak")
 )

@@ -5,11 +5,23 @@ import (
 	"github.com/celpung/gocleanarch/internal/usecase/port/usecase"
 )
 
-type Dependencies interface {
+// dependencies
+type UUIDGenerator interface {
 	NewID() (string, error)
+}
+
+type PasswordHasher interface {
 	HashPassword(plain string) (string, error)
 	ComparePassword(hashed string, plain string) error
-	GenerateJWT(userID, email, role string) (string, error)
+}
+
+type JWTGenerator interface {
+	// GenerateJWT(userID, email, role string) (string, error)
+	GenerateToken(id string, email string, role string) (string, error)
+}
+
+type Typograph interface {
+	ToTitleCase(s string) string
 }
 
 type (

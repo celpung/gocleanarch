@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/celpung/gocleanarch/internal_old/infra/db/migration"
-	"github.com/celpung/gocleanarch/internal_old/infra/db/mysql"
-	"github.com/celpung/gocleanarch/internal_old/infra/environment"
+	"github.com/celpung/gocleanarch/internal/infra/db/connector/mysql"
+	"github.com/celpung/gocleanarch/internal/infra/db/migration"
+	"github.com/celpung/gocleanarch/internal/infra/environment"
 	"gorm.io/gorm"
 )
 
@@ -55,11 +55,11 @@ func (p Provider) Connect(env environment.Environment) (*gorm.DB, error) {
 		return nil, fmt.Errorf("connect database failed: %w", err)
 	}
 
-	if env.AUTO_MIGRATE && p.migrator != nil {
-		if err := p.migrator.Migrate(db); err != nil {
-			return nil, fmt.Errorf("run migrations failed: %w", err)
-		}
-	}
+	// if env.AUTO_MIGRATE && p.migrator != nil {
+	// 	if err := p.migrator.Migrate(db); err != nil {
+	// 		return nil, fmt.Errorf("run migrations failed: %w", err)
+	// 	}
+	// }
 
 	return db, nil
 }

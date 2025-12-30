@@ -1,4 +1,4 @@
-package persistence
+package repository
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	errs "github.com/celpung/gocleanarch/internal/domain/errors"
 	"github.com/celpung/gocleanarch/internal/infra/db/model"
 	"github.com/celpung/gocleanarch/internal/usecase/port"
-	"github.com/celpung/gocleanarch/pkg/mapper"
+	"github.com/celpung/gocleanarch/pkg/utilities/mapper"
 	"gorm.io/gorm"
 )
 
