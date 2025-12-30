@@ -5,9 +5,10 @@ import (
 	"errors"
 	"strings"
 
-	domain "github.com/celpung/gocleanarch/internal/domain/user"
+	"github.com/celpung/gocleanarch/internal/domain/entity"
+	errs "github.com/celpung/gocleanarch/internal/domain/errors"
 	"github.com/celpung/gocleanarch/internal/infra/db/model"
-	"github.com/celpung/gocleanarch/internal/usecase/user"
+	"github.com/celpung/gocleanarch/internal/port/repository"
 	"github.com/celpung/gocleanarch/pkg/mapper"
 	"gorm.io/gorm"
 )
@@ -16,7 +17,7 @@ type UserRepository struct {
 	db *gorm.DB
 }
 
-func (r *UserRepository) Create(ctx context.Context, user domain.User) error {
+func (r *UserRepository) Create(ctx context.Context, user entity.User) error {
 	m, err := toModelUser(user)
 	if err != nil {
 		return err
@@ -24,7 +25,7 @@ func (r *UserRepository) Create(ctx context.Context, user domain.User) error {
 
 	if err := r.db.WithContext(ctx).Create(&m).Error; err != nil {
 		if isDuplicateErr(err) {
-			return domain.ErrEmailExists
+			return errs.ErrEmailExists
 		}
 		return err
 	}
@@ -32,7 +33,7 @@ func (r *UserRepository) Create(ctx context.Context, user domain.User) error {
 	return nil
 }
 
-func (r *UserRepository) Lists(ctx context.Context, offset, limit int) ([]domain.User, int64, error) {
+func (r *UserRepository) Lists(ctx context.Context, offset, limit int) ([]entity.User, int64, error) {
 	var (
 		users []model.User
 		total int64
@@ -60,13 +61,13 @@ func (r *UserRepository) Lists(ctx context.Context, offset, limit int) ([]domain
 	return entities, total, nil
 }
 
-func (r *UserRepository) FindByID(ctx context.Context, userID string) (*domain.User, error) {
+func (r *UserRepository) FindByID(ctx context.Context, userID string) (*entity.User, error) {
 	var user model.User
 	if err := r.db.WithContext(ctx).
 		Where("id = ?", userID).
 		First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, domain.ErrUserNotFound
+			return nil, errs.ErrUserNotFound
 		}
 		return nil, err
 	}
@@ -78,13 +79,13 @@ func (r *UserRepository) FindByID(ctx context.Context, userID string) (*domain.U
 	return &e, nil
 }
 
-func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
+func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
 	var user model.User
 	if err := r.db.WithContext(ctx).
 		Where("email = ?", email).
 		First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, domain.ErrEmailNotFound
+			return nil, errs.ErrEmailNotFound
 		}
 		return nil, err
 	}
@@ -96,9 +97,9 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*domain
 	return &e, nil
 }
 
-func (r *UserRepository) Update(ctx context.Context, id string, input *domain.UpdateUser) error {
+func (r *UserRepository) Update(ctx context.Context, id string, input *entity.UpdateUser) error {
 	if input == nil {
-		return domain.ErrInvalidInput
+		return errs.ErrInvalidInput
 	}
 
 	updates := make(map[string]any)
@@ -127,13 +128,13 @@ func (r *UserRepository) Update(ctx context.Context, id string, input *domain.Up
 
 	if result.Error != nil {
 		if input.Email != nil && isDuplicateErr(result.Error) {
-			return domain.ErrEmailExists
+			return errs.ErrEmailExists
 		}
 		return result.Error
 	}
 
 	if result.RowsAffected == 0 {
-		return domain.ErrUserNotFound
+		return errs.ErrUserNotFound
 	}
 
 	return nil
@@ -148,18 +149,18 @@ func (r *UserRepository) Delete(ctx context.Context, id string) error {
 	}
 
 	if result.RowsAffected == 0 {
-		return domain.ErrUserNotFound
+		return errs.ErrUserNotFound
 	}
 
 	return nil
 }
 
-func NewUserRepository(db *gorm.DB) user.Repository {
+func NewUserRepository(db *gorm.DB) repository.UserRepository {
 	return &UserRepository{db: db}
 }
 
 // mappers
-func toModelUser(user domain.User) (model.User, error) {
+func toModelUser(user entity.User) (model.User, error) {
 	var m model.User
 	if err := mapper.CopyTo(&user, &m); err != nil {
 		return model.User{}, err
@@ -167,16 +168,16 @@ func toModelUser(user domain.User) (model.User, error) {
 	return m, nil
 }
 
-func toEntityUser(user model.User) (domain.User, error) {
-	var e domain.User
+func toEntityUser(user model.User) (entity.User, error) {
+	var e entity.User
 	if err := mapper.CopyTo(&user, &e); err != nil {
-		return domain.User{}, err
+		return entity.User{}, err
 	}
 	return e, nil
 }
 
-func toEntityUsers(users []model.User) ([]domain.User, error) {
-	result := make([]domain.User, 0, len(users))
+func toEntityUsers(users []model.User) ([]entity.User, error) {
+	result := make([]entity.User, 0, len(users))
 	for i := range users {
 		e, err := toEntityUser(users[i])
 		if err != nil {

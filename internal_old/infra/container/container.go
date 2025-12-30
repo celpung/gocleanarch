@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	deliveryuser "github.com/celpung/gocleanarch/internal/delivery/user"
-	"github.com/celpung/gocleanarch/internal/infra/db"
-	"github.com/celpung/gocleanarch/internal/infra/environment"
-	"github.com/celpung/gocleanarch/internal/infra/persistence"
-	"github.com/celpung/gocleanarch/internal/infra/services"
-	usecase "github.com/celpung/gocleanarch/internal/usecase/user"
+	deliveryuser "github.com/celpung/gocleanarch/internal_old/delivery/user"
+	"github.com/celpung/gocleanarch/internal_old/infra/db"
+	"github.com/celpung/gocleanarch/internal_old/infra/environment"
+	"github.com/celpung/gocleanarch/internal_old/infra/persistence"
+	"github.com/celpung/gocleanarch/internal_old/infra/services"
+	usecase "github.com/celpung/gocleanarch/internal_old/usecase/user"
 	"github.com/celpung/gocleanarch/pkg/typograph"
 
 	"github.com/go-chi/chi/v5"

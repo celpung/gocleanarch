@@ -5,7 +5,7 @@ import (
 	"net/mail"
 	"strings"
 
-	domain "github.com/celpung/gocleanarch/internal/domain/user"
+	domain "github.com/celpung/gocleanarch/internal_old/domain/user"
 )
 
 type Service struct {

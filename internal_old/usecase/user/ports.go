@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	domain "github.com/celpung/gocleanarch/internal/domain/user"
+	domain "github.com/celpung/gocleanarch/internal_old/domain/user"
 )
 
 type Repository interface {

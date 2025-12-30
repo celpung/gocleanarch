@@ -12,14 +12,6 @@ type Database struct {
 	DB *gorm.DB
 }
 
-type Config struct {
-	Username string
-	Password string
-	Host     string
-	Port     string
-	Database string
-}
-
 func New(cfg Config) (*Database, error) {
 	if err := CreateDatabaseIfNotExists(cfg); err != nil {
 		return nil, err

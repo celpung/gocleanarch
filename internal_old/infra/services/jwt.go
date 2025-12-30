@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	usecase "github.com/celpung/gocleanarch/internal/usecase/user"
+	usecase "github.com/celpung/gocleanarch/internal_old/usecase/user"
 	"github.com/golang-jwt/jwt/v4"
 )
 

@@ -3,7 +3,7 @@ package user
 import (
 	"github.com/go-chi/chi/v5"
 
-	usecase "github.com/celpung/gocleanarch/internal/usecase/user"
+	usecase "github.com/celpung/gocleanarch/internal_old/usecase/user"
 )
 
 func RegisterRoutes(r chi.Router, verifier usecase.TokenVerifier, handler *Handler) {

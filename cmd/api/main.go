@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/celpung/gocleanarch/internal/infra/container"
+	"github.com/celpung/gocleanarch/internal_old/infra/container"
 )
 
 func main() {

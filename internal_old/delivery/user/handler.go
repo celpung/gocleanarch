@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	domain "github.com/celpung/gocleanarch/internal/domain/user"
-	usecase "github.com/celpung/gocleanarch/internal/usecase/user"
+	domain "github.com/celpung/gocleanarch/internal_old/domain/user"
+	usecase "github.com/celpung/gocleanarch/internal_old/usecase/user"
 	"github.com/celpung/gocleanarch/pkg/httpx"
 	"github.com/celpung/gocleanarch/pkg/validator"
 	"github.com/go-chi/chi/v5"
@@ -203,7 +203,7 @@ func writeBadRequest(w http.ResponseWriter, msg string) {
 
 func respondError(w http.ResponseWriter, err error) {
 	status := http.StatusInternalServerError
-	msg := "internal server error"
+	msg := "internal_old server error"
 
 	switch {
 	case errors.Is(err, domain.ErrEmailExists):

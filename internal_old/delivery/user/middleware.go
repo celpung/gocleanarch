@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	usecase "github.com/celpung/gocleanarch/internal/usecase/user"
+	usecase "github.com/celpung/gocleanarch/internal_old/usecase/user"
 )
 
 type ctxKey string
