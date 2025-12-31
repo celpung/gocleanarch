@@ -28,7 +28,10 @@ type Container struct {
 
 func Build() (*Container, error) {
 	// load env
-	env := environment.Load()
+	env, err := environment.Load()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load environment: %w", err)
+	}
 
 	// validate mode
 	if err := validateMode(env.MODE); err != nil {

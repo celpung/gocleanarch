@@ -218,14 +218,17 @@ func NewUserUsecase(repo port.UserRepository,
 }
 
 func normalizeEmail(raw string) (string, error) {
-	normalized := strings.TrimSpace(strings.ToLower(raw))
+	normalized := strings.TrimSpace(raw)
 	if normalized == "" {
 		return "", errs.ErrEmailRequired
 	}
-	if _, err := mail.ParseAddress(normalized); err != nil {
+	parsed, err := mail.ParseAddress(normalized)
+	if err != nil {
 		return "", errs.ErrInvalidEmail
 	}
-	return normalized, nil
+	addr := strings.TrimSpace(parsed.Address)
+	// Persist canonical lower-case to avoid duplicate accounts differing only by case.
+	return strings.ToLower(addr), nil
 }
 
 func normalizeRole(raw string) (string, error) {

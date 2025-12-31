@@ -55,8 +55,11 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 		case errs.ErrInvalidInput,
 			errs.ErrNameRequired,
+			errs.ErrInvalidEmail,
 			errs.ErrEmailRequired,
+			errs.ErrInvalidRole,
 			errs.ErrRoleRequired,
+			errs.ErrWeakPassword,
 			errs.ErrPasswordRequired:
 			httpx.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"message": err.Error(),

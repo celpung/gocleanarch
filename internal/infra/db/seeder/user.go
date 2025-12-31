@@ -38,7 +38,7 @@ func Seed(db *gorm.DB) error {
 		Name:     adminName,
 		Email:    adminEmail,
 		Password: string(hashed),
-		Role:     "admin",
+		Role:     "ADMIN",
 	}
 
 	if err := db.Create(&admin).Error; err != nil {

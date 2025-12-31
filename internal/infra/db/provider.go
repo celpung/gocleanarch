@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/celpung/gocleanarch/internal/infra/db/connector/mysql"
-	"github.com/celpung/gocleanarch/internal/infra/db/connector/sqlite"
 	"github.com/celpung/gocleanarch/internal/infra/db/migration"
 	"github.com/celpung/gocleanarch/internal/infra/environment"
 	"gorm.io/gorm"
@@ -37,8 +36,7 @@ type Provider struct {
 func DefaultProvider() Provider {
 	return Provider{
 		connectors: map[string]Connector{
-			"mysql":  MySQLConnector{},
-			"sqlite": SQLiteConnector{},
+			"mysql": MySQLConnector{},
 		},
 		migrator: MigratorFunc(migration.Run),
 	}
@@ -47,9 +45,10 @@ func DefaultProvider() Provider {
 // Connect creates a DB connection using the configured dialect.
 // If AUTO_MIGRATE is enabled, migrations run automatically.
 func (p Provider) Connect(env environment.Environment) (*gorm.DB, error) {
-	connector, ok := p.connectors[strings.ToLower(env.DB_DIALECT)]
+	dialect := strings.ToLower(env.DB_DIALECT)
+	connector, ok := p.connectors[dialect]
 	if !ok {
-		return nil, fmt.Errorf("unsupported db dialect: %s", env.DB_DIALECT)
+		return nil, fmt.Errorf("unsupported db dialect: %s (supported: mysql)", env.DB_DIALECT)
 	}
 
 	db, err := connector.Connect(env)
@@ -84,21 +83,4 @@ func (MySQLConnector) Connect(env environment.Environment) (*gorm.DB, error) {
 	}
 
 	return database.DB, nil
-}
-
-// SQLiteConnector connects using the SQLite adapter.
-type SQLiteConnector struct{}
-
-func (SQLiteConnector) Connect(env environment.Environment) (*gorm.DB, error) {
-	dbname := strings.TrimSpace(env.DB_NAME)
-	if dbname == "" {
-		dbname = "app.db"
-	}
-
-	db, err := sqlite.SetupDB(dbname)
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
 }
